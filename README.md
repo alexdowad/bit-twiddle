@@ -4,6 +4,12 @@
 
 Don't bother with that nonsense. Just use the fastest native code which GCC can generate for your CPU architecture. (On x86 CPUs with SSE4, that is a single POPCNT instruction.) Like so:
 
+```
+gem install popcount-ruby
+```
+
+And then:
+
 ```ruby
 require 'popcount'
 puts 11.popcount # => 3
