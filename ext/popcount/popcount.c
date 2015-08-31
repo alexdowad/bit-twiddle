@@ -100,8 +100,9 @@ fnum_bswap16(VALUE fnum)
 static VALUE
 bnum_bswap16(VALUE bnum)
 {
-  VALUE result = rb_big_clone(bnum);
-  *RBIGNUM_DIGITS(result) = __builtin_bswap16(*RBIGNUM_DIGITS(bnum));
+  VALUE  result = rb_big_clone(bnum);
+  BDIGIT value  = *RBIGNUM_DIGITS(bnum);
+  *RBIGNUM_DIGITS(result) = (value & ~0xFFFF) | __builtin_bswap16(value);
   return result;
 }
 
