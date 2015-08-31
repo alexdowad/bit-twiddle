@@ -93,7 +93,8 @@ bnum_hi_bit(VALUE bnum)
 static VALUE
 fnum_bswap16(VALUE fnum)
 {
-  return LONG2FIX(__builtin_bswap16(FIX2LONG(fnum)));
+  long value = FIX2LONG(fnum);
+  return LONG2FIX((value & ~0xFFFF) | __builtin_bswap16(value));
 }
 
 static VALUE
