@@ -1,5 +1,23 @@
 #include <ruby.h>
 
+#define fix_zero LONG2FIX(0L)
+
+#if SIZEOF_BDIGIT == SIZEOF_LONG
+
+#define popcount_bdigit __builtin_popcountl
+#define ffs_bdigit      __builtin_ffsl
+#define clz_bdigit      __builtin_clzl
+
+#elif SIZEOF_BDIGIT == SIZEOF_INT
+
+#define popcount_bdigit __builtin_popcount
+#define ffs_bdigit      __builtin_ffs
+#define clz_bdigit      __builtin_clz
+
+#else
+#error "What is the size of a Ruby Bignum digit on this platform???"
+#endif
+
 static VALUE
 fnum_popcount(VALUE fnum)
 {
@@ -15,7 +33,7 @@ bnum_popcount(VALUE bnum)
   long    bits = 0;
 
   while (length--) {
-    bits += __builtin_popcountl((long)*digits);
+    bits += popcount_bdigit(*digits);
     digits++;
   }
 
