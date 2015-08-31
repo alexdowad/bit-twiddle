@@ -21,8 +21,10 @@
 static VALUE
 fnum_popcount(VALUE fnum)
 {
-  long bits = __builtin_popcountl(FIX2LONG(fnum));
-  return LONG2FIX(bits);
+  long value = FIX2LONG(fnum);
+  if (value < 0)
+    value = -value;
+  return LONG2FIX(__builtin_popcountl(value));
 }
 
 static VALUE
