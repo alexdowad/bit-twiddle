@@ -30,7 +30,7 @@ bnum_popcount(VALUE bnum)
 {
   BDIGIT *digits = RBIGNUM_DIGITS(bnum);
   size_t  length = RBIGNUM_LEN(bnum);
-  long    bits = 0;
+  long    bits   = 0;
 
   while (length--) {
     bits += popcount_bdigit(*digits);
