@@ -64,9 +64,12 @@ bnum_lo_bit(VALUE bnum)
 static VALUE
 fnum_hi_bit(VALUE fnum)
 {
-  long bits;
+  long bits, value;
   if (fnum == fix_zero) return fix_zero;
-  bits = __builtin_clzl(FIX2LONG(fnum));
+  value = FIX2LONG(fnum);
+  if (value < 0)
+    value = -value;
+  bits = __builtin_clzl(value);
   return LONG2FIX((sizeof(long) * 8) - bits);
 }
 
