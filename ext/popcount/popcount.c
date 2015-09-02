@@ -1,6 +1,7 @@
 #include <ruby.h>
 
 #define fix_zero LONG2FIX(0L)
+#define BIGNUM_P(x) RB_TYPE_P((x), T_BIGNUM)
 
 #if SIZEOF_BDIGIT == SIZEOF_LONG
 
@@ -25,6 +26,40 @@
 #elif SIZEOF_LONG > 8
 #error "Sorry, Fixnum#sar64 will not work with sizeof(long) > 8. Please report this error."
 #endif
+
+static inline int
+bnum_greater(VALUE bnum, BDIGIT value)
+{
+  BDIGIT *digits = RBIGNUM_DIGITS(bnum);
+  size_t  len    = RBIGNUM_LEN(bnum);
+  if (*digits > value)
+    return 1;
+  while (--len)
+    if (*++digits > 0)
+      return 1;
+  return 0;
+}
+
+static inline long
+value_to_shiftdist(VALUE shiftdist, long bits)
+{
+  for (;;) {
+    if (BIGNUM_P(shiftdist)) {
+      long sdist;
+      if (bnum_greater(shiftdist, bits-1))
+        sdist = bits;
+      else
+        sdist = *RBIGNUM_DIGITS(shiftdist);
+      if (RBIGNUM_NEGATIVE_P(shiftdist))
+        sdist = -sdist;
+      return sdist;
+    } else if (FIXNUM_P(shiftdist)) {
+      return FIX2LONG(shiftdist);
+    } else {
+      shiftdist = rb_to_int(shiftdist);
+    }
+  }
+}
 
 static inline void
 store_64_into_bnum(VALUE bnum, uint64_t int64)
@@ -190,6 +225,40 @@ bnum_bswap64(VALUE bnum)
   return result;
 }
 
+static VALUE
+fnum_shr32(VALUE fnum, VALUE shiftdist)
+{
+  long    value = FIX2LONG(fnum);
+  uint32_t lo32 = value;
+  long    sdist = value_to_shiftdist(shiftdist, 32);
+
+  if (sdist >= 32 || sdist <= -32)
+    return LONG2FIX(value & ~0xFFFFFFFFUL);
+  else if (sdist < 0)
+    return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)-sdist)));
+  else
+    return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)sdist)));
+}
+
+static VALUE
+bnum_shr32(VALUE bnum, VALUE shiftdist)
+{
+  VALUE   result = rb_big_clone(bnum);
+  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT  value  = *src;
+  uint32_t lo32  = value;
+  long    sdist  = value_to_shiftdist(shiftdist, 32);
+
+  if (sdist >= 32 || sdist <= -32)
+    *dest = value & ~0xFFFFFFFFUL;
+  else if (sdist < 0)
+    *dest = (value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)-sdist));
+  else
+    *dest = (value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)sdist));
+  return result;
+}
+
 void Init_popcount(void)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
@@ -206,4 +275,7 @@ void Init_popcount(void)
   rb_define_method(rb_cBignum, "bswap32", bnum_bswap32, 0);
   rb_define_method(rb_cFixnum, "bswap64", fnum_bswap64, 0);
   rb_define_method(rb_cBignum, "bswap64", bnum_bswap64, 0);
+
+  rb_define_method(rb_cFixnum, "shr32",  fnum_shr32, 1);
+  rb_define_method(rb_cBignum, "shr32",  bnum_shr32, 1);
 }
