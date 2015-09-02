@@ -43,4 +43,10 @@ describe "#shr32" do
       end
     end
   end
+
+  it "zeroes out low 32 bits when shift distance is a Bignum" do
+    expect(100.shr32(1 << 100)).to eq 0
+    expect((1 << 100).shr32(1 << 100)).to eq (1 << 100)
+    (expect ((1 << 100)+1).shr32(1 << 80)).to eq (1 << 100)
+  end
 end
