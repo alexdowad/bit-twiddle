@@ -1,5 +1,5 @@
 require 'mkmf'
-$CFLAGS << ' -Wall -Werror -march=native -mtune=native '
+$CFLAGS << ' -Wall -Werror -O3 -march=native -mtune=native '
 check_sizeof 'BDIGIT'
 check_sizeof 'int'
 check_sizeof 'long'
