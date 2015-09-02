@@ -18,6 +18,14 @@
 #error "What is the size of a Ruby Bignum digit on this platform???"
 #endif
 
+#if SIZEOF_BDIGIT < 4
+#error "Sorry, Bignum#bswap32 and Bignum#sar32 will not work with sizeof(BDIGIT) < 4. Please report this error."
+#elif SIZEOF_BDIGIT > 8
+#error "Sorry, several methods will not work if sizeof(BDIGIT) > 8. Please report this error."
+#elif SIZEOF_LONG > 8
+#error "Sorry, Fixnum#sar64 will not work with sizeof(long) > 8. Please report this error."
+#endif
+
 static inline void
 store_64_into_bnum(VALUE bnum, uint64_t int64)
 {
@@ -163,11 +171,6 @@ static VALUE
 bnum_bswap32(VALUE bnum)
 {
   VALUE result = rb_big_clone(bnum);
-
-#if SIZEOF_BDIGIT < 4
-#error "Help!!! This platform is seriously weird!! Bignum#bswap32 will not work!"
-#endif
-
   *RBIGNUM_DIGITS(result) = __builtin_bswap32(*RBIGNUM_DIGITS(bnum));
   return result;
 }
