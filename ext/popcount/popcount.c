@@ -281,6 +281,30 @@ bnum_bswap64(VALUE bnum)
 }
 
 static VALUE
+fnum_rrot16(VALUE fnum, VALUE rotdist)
+{
+  long  value  = FIX2LONG(fnum);
+  long  rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  ulong loword = value & 0xFFFF;
+  loword = ((loword >> rotd) | (loword << (-rotd & 15))) & 0xFFFF;
+  return LONG2FIX((value & ~0xFFFF) | loword);
+}
+
+static VALUE
+bnum_rrot16(VALUE bnum, VALUE rotdist)
+{
+  VALUE   result = rb_big_clone(bnum);
+  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT  value  = *src;
+  long    rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  ulong   loword = value & 0xFFFF;
+  loword = ((loword >> rotd) | (loword << (-rotd & 15))) & 0xFFFF;
+  *dest = ((value & ~0xFFFF) | loword);
+  return result;
+}
+
+static VALUE
 fnum_lrot16(VALUE fnum, VALUE rotdist)
 {
   long  rotd   = value_to_rotdist(rotdist, 16, 0xF);
@@ -541,6 +565,12 @@ void Init_popcount(void)
   rb_define_method(rb_cBignum, "bswap32", bnum_bswap32, 0);
   rb_define_method(rb_cFixnum, "bswap64", fnum_bswap64, 0);
   rb_define_method(rb_cBignum, "bswap64", bnum_bswap64, 0);
+
+  rb_define_method(rb_cFixnum, "rrot16", fnum_rrot16, 1);
+  rb_define_method(rb_cBignum, "rrot16", bnum_rrot16, 1);
+
+  rb_define_method(rb_cFixnum, "lrot16", fnum_lrot16, 1);
+  rb_define_method(rb_cBignum, "lrot16", bnum_lrot16, 1);
 
   rb_define_method(rb_cFixnum, "shl32",  fnum_shl32, 1);
   rb_define_method(rb_cBignum, "shl32",  bnum_shl32, 1);

@@ -2,7 +2,7 @@ MASK_64 = (1 << 64) - 1
 MASK_32 = (1 << 32) - 1
 MASK_16 = (1 << 16) - 1
 
-describe "#rol16" do
+describe "#lrot16" do
   it "rotates the low 16 bits to the left" do
     100.times do
       num  = rand(1 << 16)
@@ -40,7 +40,7 @@ describe "#rol16" do
     end
   end
 
-  context "with a rotate distance greater than 16" do
+  context "with a rotate distance greater than 15" do
     it "does the same as (rotate distance) % 16" do
       100.times do
         num  = rand(1 << 32)
