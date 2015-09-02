@@ -93,6 +93,28 @@ value_to_shiftdist(VALUE shiftdist, long bits)
   }
 }
 
+/* 'mask' is 0x7 for 8, 0xF for 16, 0x1F for 32, 0x3F for 64 */
+static inline long
+value_to_rotdist(VALUE rotdist, long bits, long mask)
+{
+  for (;;) {
+    long rdist;
+    if (BIGNUM_P(rotdist)) {
+      rdist = *RBIGNUM_DIGITS(rotdist) & mask;
+      if (RBIGNUM_NEGATIVE_P(rotdist))
+        rdist = bits - rdist;
+      return rdist;
+    } else if (FIXNUM_P(rotdist)) {
+      rdist = FIX2LONG(rotdist) % bits;
+      if (rdist < 0)
+        rdist += bits;
+      return rdist;
+    } else {
+      rotdist = rb_to_int(rotdist);
+    }
+  }
+}
+
 static inline void
 store_64_into_bnum(VALUE bnum, uint64_t int64)
 {
@@ -259,6 +281,29 @@ bnum_bswap64(VALUE bnum)
 }
 
 static VALUE
+fnum_lrot16(VALUE fnum, VALUE rotdist)
+{
+  long  rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  long  value  = FIX2LONG(fnum);
+  ulong loword = value & 0xFFFF;
+  loword = ((loword << (ulong)rotd) | (loword >> (ulong)(-rotd & 15))) & 0xFFFF;
+  return LONG2FIX((value & ~0xFFFF) | loword);
+}
+
+static VALUE
+bnum_lrot16(VALUE bnum, VALUE rotdist)
+{
+  long    rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  VALUE   result = rb_big_clone(bnum);
+  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT  value  = *src;
+  ulong loword   = value & 0xFFFF;
+  loword = ((loword << (ulong)rotd) | (loword >> (ulong)(-rotd & 15))) & 0xFFFF;
+  *dest  = (value & ~0xFFFF) | loword;
+  return result;
+}
+
 fnum_shl32(VALUE fnum, VALUE shiftdist)
 {
   long    value = FIX2LONG(fnum);
