@@ -1,3 +1,6 @@
+MASK_64 = (1 << 64) - 1
+MASK_32 = (1 << 32) - 1
+
 describe "#shr32" do
   it "shifts bits in a 32-bit number to the right" do
     100.times do
@@ -12,7 +15,7 @@ describe "#shr32" do
     100.times do
       num = rand(1 << 32)
       1.upto(40) do |sdist|
-        expect(num.shr32(-sdist)).to eq ((num << sdist) & 0xFFFFFFFF)
+        expect(num.shr32(-sdist)).to eq ((num << sdist) & MASK_32)
       end
     end
   end
@@ -28,7 +31,7 @@ describe "#shr32" do
     100.times do
       num = rand(1 << 32)
       1.upto(40) do |sdist|
-        mask = sdist <= 32 ? ~((1 << (32 - sdist)) - 1) : 0xFFFFFFFF
+        mask = sdist <= 32 ? ~((1 << (32 - sdist)) - 1) : MASK_32
         expect(num.shr32(sdist) & mask).to eq 0
       end
     end
@@ -38,8 +41,8 @@ describe "#shr32" do
     100.times do
       num = rand(1 << 64)
       0.upto(64) do |sdist|
-        expect(num.shr32(sdist) & 0xFFFFFFFF).to eq ((num & 0xFFFFFFFF) >> sdist)
-        expect(num.shr32(sdist) & ~0xFFFFFFFF).to eq (num & ~0xFFFFFFFF)
+        expect(num.shr32(sdist) & MASK_32).to eq ((num & MASK_32) >> sdist)
+        expect(num.shr32(sdist) & ~MASK_32).to eq (num & ~MASK_32)
       end
     end
   end
