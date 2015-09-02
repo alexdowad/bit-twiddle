@@ -197,8 +197,9 @@ fnum_bswap32(VALUE fnum)
    * be less than 32 bits... */
 #if SIZEOF_LONG == 4
   return LONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
-#else
-  return LONG2FIX(__builtin_bswap32(FIX2LONG(fnum)));
+#elif SIZEOF_LONG >= 8
+  long value = FIX2LONG(fnum);
+  return LONG2FIX((value & ~0xFFFFFFFF) | __builtin_bswap32(value));
 #endif
 }
 
