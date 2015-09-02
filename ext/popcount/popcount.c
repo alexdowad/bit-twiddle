@@ -18,6 +18,45 @@
 #error "What is the size of a Ruby Bignum digit on this platform???"
 #endif
 
+static inline void
+store_64_into_bnum(VALUE bnum, uint64_t int64)
+{
+  BDIGIT *dest = RBIGNUM_DIGITS(bnum);
+  size_t  len  = RBIGNUM_LEN(bnum);
+
+#if SIZEOF_BDIGIT == 8
+  *dest = int64;
+#else
+  if (len > 1) {
+    *dest     = int64;
+    *(dest+1) = int64 >> 32;
+  } else if (int64 & (0xFFFFFFFFULL << 32) == 0) {
+    /* the high 4 bytes are zero anyways */
+    *dest = int64;
+  } else {
+    rb_big_resize(bnum, 2);
+    dest      = RBIGNUM_DIGITS(bnum); /* may have moved */
+    *dest     = int64;
+    *(dest+1) = int64 >> 32;
+  }
+#endif
+}
+
+static inline uint64_t
+load_64_from_bignum(VALUE bnum)
+{
+  BDIGIT *src = RBIGNUM_DIGITS(bnum);
+  size_t  len = RBIGNUM_LEN(bnum);
+  uint64_t result = *src;
+
+#if SIZEOF_BDIGIT == 4
+  if (len > 1)
+    result += ((unsigned long long)*(src+1)) << 32;
+#endif
+
+  return result;
+}
+
 static VALUE
 fnum_popcount(VALUE fnum)
 {
@@ -143,24 +182,8 @@ static VALUE
 bnum_bswap64(VALUE bnum)
 {
   VALUE   result = rb_big_clone(bnum);
-  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT *dest   = RBIGNUM_DIGITS(result);
-
-#if SIZEOF_BDIGIT >= 8
-  *dest = __builtin_bswap64(*src);
-#elif SIZEOF_BDIGIT == 4
-  /* I think this should always be the case, but let's be safe */
-  if (RBIGNUM_LEN(bnum) > 1) {
-    long long value = *src | (((long long)*(src+1)) << 32);
-    value = __builtin_bswap64(value);
-    *dest = value & 0xFFFFFFFF;
-    *(dest+1) = (value >> 32) & 0xFFFFFFFF;
-  } else {
-    long long value = __builtin_bswap64(*src);
-    *dest = value & 0xFFFFFFFF;
-  }
-#endif
-
+  uint64_t value = __builtin_bswap64(load_64_from_bignum(bnum));
+  store_64_into_bnum(result, value);
   return result;
 }
 
