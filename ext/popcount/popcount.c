@@ -226,6 +226,40 @@ bnum_bswap64(VALUE bnum)
 }
 
 static VALUE
+fnum_shl32(VALUE fnum, VALUE shiftdist)
+{
+  long    value = FIX2LONG(fnum);
+  long    sdist = value_to_shiftdist(shiftdist, 32);
+  uint32_t lo32 = value;
+
+  if (sdist >= 32 || sdist <= -32)
+    return LONG2FIX(value & ~0xFFFFFFFFUL);
+  else if (sdist < 0)
+    return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)-sdist)));
+  else
+    return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)sdist)));
+}
+
+static VALUE
+bnum_shl32(VALUE bnum, VALUE shiftdist)
+{
+  VALUE   result = rb_big_clone(bnum);
+  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT  value  = *src;
+  uint32_t lo32  = value;
+  long    sdist  = value_to_shiftdist(shiftdist, 32);
+
+  if (sdist >= 32 || sdist <= -32)
+    *dest = (value & ~0xFFFFFFFFUL);
+  else if (sdist < 0)
+    *dest = (value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)-sdist));
+  else
+    *dest = (value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)sdist));
+  return result;
+}
+
+static VALUE
 fnum_shr32(VALUE fnum, VALUE shiftdist)
 {
   long    value = FIX2LONG(fnum);
@@ -276,6 +310,8 @@ void Init_popcount(void)
   rb_define_method(rb_cFixnum, "bswap64", fnum_bswap64, 0);
   rb_define_method(rb_cBignum, "bswap64", bnum_bswap64, 0);
 
+  rb_define_method(rb_cFixnum, "shl32",  fnum_shl32, 1);
+  rb_define_method(rb_cBignum, "shl32",  bnum_shl32, 1);
   rb_define_method(rb_cFixnum, "shr32",  fnum_shr32, 1);
   rb_define_method(rb_cBignum, "shr32",  bnum_shr32, 1);
 }
