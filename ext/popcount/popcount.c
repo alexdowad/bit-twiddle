@@ -327,6 +327,65 @@ bnum_shr32(VALUE bnum, VALUE shiftdist)
 }
 
 static VALUE
+fnum_sar32(VALUE fnum, VALUE shiftdist)
+{
+#if SIZEOF_LONG == 4
+  /* Not enough precision for 32nd bit to be a 1 */
+  return fnum_shr32(fnum, shiftdist);
+#else
+  long    value = FIX2LONG(fnum);
+  uint32_t lo32 = value;
+  long    sdist = value_to_shiftdist(shiftdist, 32);
+
+  if (sdist < 0)
+    return fnum_shl32(fnum, LONG2FIX(-sdist));
+
+  if ((0x80000000UL & lo32) != 0) {
+    if (sdist < 32)
+      lo32 = (lo32 >> sdist) | ~(0xFFFFFFFFUL >> sdist);
+    else
+      lo32 = 0xFFFFFFFFUL;
+  } else {
+    if (sdist < 32)
+      lo32 = lo32 >> sdist;
+    else
+      lo32 = 0;
+  }
+
+  return LONG2FIX((value & ~0xFFFFFFFFUL) | lo32);
+#endif
+}
+
+static VALUE
+bnum_sar32(VALUE bnum, VALUE shiftdist)
+{
+  VALUE   result = rb_big_clone(bnum);
+  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT  value  = *src;
+  uint32_t lo32  = value;
+  long    sdist  = value_to_shiftdist(shiftdist, 32);
+
+  if (sdist < 0)
+    return bnum_shl32(bnum, LONG2FIX(-sdist));
+
+  if ((0x80000000UL & lo32) != 0) {
+    if (sdist < 32)
+      lo32 = (lo32 >> sdist) | ~(~0UL >> sdist);
+    else
+      lo32 = 0xFFFFFFFFUL;
+  } else {
+    if (sdist < 32)
+      lo32 = lo32 >> sdist;
+    else
+      lo32 = 0;
+  }
+
+  *dest = (value & ~0xFFFFFFFFUL) | lo32;
+  return result;
+}
+
+static VALUE
 fnum_shl64(VALUE fnum, VALUE shiftdist)
 {
   uint64_t val  = FIX2ULONG(fnum);
@@ -388,6 +447,39 @@ bnum_shr64(VALUE bnum, VALUE shiftdist)
   return bigfixize(result);
 }
 
+static VALUE
+fnum_sar64(VALUE fnum, VALUE shiftdist)
+{
+  /* Fixnum doesn't have enough precision that the 64th bit could be a 1
+   * Or if it does, our preprocessor directives above make sure this won't compile */
+  return fnum_shr64(fnum, shiftdist);
+}
+
+static VALUE
+bnum_sar64(VALUE bnum, VALUE shiftdist)
+{
+  VALUE   result = rb_big_clone(bnum);
+  uint64_t val   = load_64_from_bignum(bnum);
+  long    sdist  = value_to_shiftdist(shiftdist, 64);
+
+  if (sdist < 0)
+    return bnum_shl64(bnum, LONG2FIX(-sdist));
+
+  if ((0x8000000000000000ULL & val) != 0) {
+    if (sdist < 64)
+      store_64_into_bnum(result, (val >> sdist) | ~(~0ULL >> sdist));
+    else
+      store_64_into_bnum(result, ~0ULL);
+  } else {
+    if (sdist < 64)
+      store_64_into_bnum(result, val >> sdist);
+    else
+      store_64_into_bnum(result, 0);
+  }
+
+  return bigfixize(result);
+}
+
 void Init_popcount(void)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
@@ -413,4 +505,8 @@ void Init_popcount(void)
   rb_define_method(rb_cBignum, "shr32",  bnum_shr32, 1);
   rb_define_method(rb_cFixnum, "shr64",  fnum_shr64, 1);
   rb_define_method(rb_cBignum, "shr64",  bnum_shr64, 1);
+  rb_define_method(rb_cFixnum, "sar32",  fnum_sar32, 1);
+  rb_define_method(rb_cBignum, "sar32",  bnum_sar32, 1);
+  rb_define_method(rb_cFixnum, "sar64",  fnum_sar64, 1);
+  rb_define_method(rb_cBignum, "sar64",  bnum_sar64, 1);
 }
