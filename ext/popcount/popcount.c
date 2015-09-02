@@ -357,6 +357,37 @@ bnum_shl64(VALUE bnum, VALUE shiftdist)
   return bigfixize(result);
 }
 
+static VALUE
+fnum_shr64(VALUE fnum, VALUE shiftdist)
+{
+  uint64_t val  = FIX2ULONG(fnum);
+  long    sdist = value_to_shiftdist(shiftdist, 64);
+
+  if (sdist >= 64 || sdist <= -64)
+    return fix_zero;
+  else if (sdist < 0)
+    return ULL2NUM(val << ((ulong)-sdist));
+  else
+    return ULL2NUM(val >> ((ulong)sdist));
+}
+
+static VALUE
+bnum_shr64(VALUE bnum, VALUE shiftdist)
+{
+  VALUE   result = rb_big_clone(bnum);
+  uint64_t val   = load_64_from_bignum(bnum);
+  long    sdist  = value_to_shiftdist(shiftdist, 64);
+
+  if (sdist >= 64 || sdist <= -64)
+    store_64_into_bnum(result, 0ULL);
+  else if (sdist < 0)
+    store_64_into_bnum(result, val << ((ulong)-sdist));
+  else
+    store_64_into_bnum(result, val >> ((ulong)sdist));
+
+  return bigfixize(result);
+}
+
 void Init_popcount(void)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
@@ -380,4 +411,6 @@ void Init_popcount(void)
   rb_define_method(rb_cBignum, "shl64",  bnum_shl64, 1);
   rb_define_method(rb_cFixnum, "shr32",  fnum_shr32, 1);
   rb_define_method(rb_cBignum, "shr32",  bnum_shr32, 1);
+  rb_define_method(rb_cFixnum, "shr64",  fnum_shr64, 1);
+  rb_define_method(rb_cBignum, "shr64",  bnum_shr64, 1);
 }
