@@ -27,6 +27,38 @@
 #error "Sorry, Fixnum#sar64 will not work with sizeof(long) > 8. Please report this error."
 #endif
 
+static inline VALUE
+bigfixize(VALUE x)
+{
+  size_t n   = RBIGNUM_LEN(x);
+  BDIGIT *ds = RBIGNUM_DIGITS(x);
+  ulong u;
+
+  while (n && ds[n-1] == 0)
+    n--;
+
+  if (n == 0) {
+    return INT2FIX(0);
+  } else if (n == 1) {
+    u = ds[0];
+  } else if (SIZEOF_BDIGIT == 4 && SIZEOF_LONG == 8 && n == 2) {
+    u = ds[0] + ((ulong)ds[1] << 32);
+  } else {
+    goto return_big;
+  }
+
+  if (RBIGNUM_POSITIVE_P(x)) {
+      if (POSFIXABLE(u))
+        return LONG2FIX((long)u);
+  } else if (u <= -FIXNUM_MIN) {
+    return LONG2FIX(-(long)u);
+  }
+
+return_big:
+  rb_big_resize(x, n);
+  return x;
+}
+
 static inline int
 bnum_greater(VALUE bnum, BDIGIT value)
 {
@@ -294,6 +326,37 @@ bnum_shr32(VALUE bnum, VALUE shiftdist)
   return result;
 }
 
+static VALUE
+fnum_shl64(VALUE fnum, VALUE shiftdist)
+{
+  uint64_t val  = FIX2ULONG(fnum);
+  long    sdist = value_to_shiftdist(shiftdist, 64);
+
+  if (sdist >= 64 || sdist <= -64)
+    return fix_zero;
+  else if (sdist < 0)
+    return ULL2NUM(val >> ((ulong)-sdist));
+  else
+    return ULL2NUM(val << ((ulong)sdist));
+}
+
+static VALUE
+bnum_shl64(VALUE bnum, VALUE shiftdist)
+{
+  VALUE   result = rb_big_clone(bnum);
+  uint64_t val   = load_64_from_bignum(bnum);
+  long    sdist  = value_to_shiftdist(shiftdist, 64);
+
+  if (sdist >= 64 || sdist <= -64)
+    store_64_into_bnum(result, 0ULL);
+  else if (sdist < 0)
+    store_64_into_bnum(result, val >> ((ulong)-sdist));
+  else
+    store_64_into_bnum(result, val << ((ulong)sdist));
+
+  return bigfixize(result);
+}
+
 void Init_popcount(void)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
@@ -313,6 +376,8 @@ void Init_popcount(void)
 
   rb_define_method(rb_cFixnum, "shl32",  fnum_shl32, 1);
   rb_define_method(rb_cBignum, "shl32",  bnum_shl32, 1);
+  rb_define_method(rb_cFixnum, "shl64",  fnum_shl64, 1);
+  rb_define_method(rb_cBignum, "shl64",  bnum_shl64, 1);
   rb_define_method(rb_cFixnum, "shr32",  fnum_shr32, 1);
   rb_define_method(rb_cBignum, "shr32",  bnum_shr32, 1);
 }
