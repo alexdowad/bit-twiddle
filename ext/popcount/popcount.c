@@ -296,7 +296,7 @@ bnum_bswap32(VALUE bnum)
 static VALUE
 fnum_bswap64(VALUE fnum)
 {
-  return LL2NUM(__builtin_bswap64(FIX2LONG(fnum)));
+  return ULL2NUM(__builtin_bswap64(FIX2LONG(fnum)));
 }
 
 static VALUE
