@@ -305,6 +305,30 @@ bnum_rrot16(VALUE bnum, VALUE rotdist)
 }
 
 static VALUE
+fnum_lrot8(VALUE fnum, VALUE rotdist)
+{
+  long  rotd   = value_to_rotdist(rotdist, 8, 0x7);
+  long  value  = FIX2LONG(fnum);
+  ulong lobyte = value & 0xFF;
+  lobyte = ((lobyte << (ulong)rotd) | (lobyte >> (ulong)(-rotd & 7))) & 0xFF;
+  return LONG2FIX((value & ~0xFF) | lobyte);
+}
+
+static VALUE
+bnum_lrot8(VALUE bnum, VALUE rotdist)
+{
+  long    rotd   = value_to_rotdist(rotdist, 8, 0x7);
+  VALUE   result = rb_big_clone(bnum);
+  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT  value  = *src;
+  ulong   lobyte = value & 0xFF;
+  lobyte = ((lobyte << (ulong)rotd) | (lobyte >> (ulong)(-rotd & 7))) & 0xFF;
+  *dest  = (value & ~0xFF) | lobyte;
+  return result;
+}
+
+static VALUE
 fnum_lrot16(VALUE fnum, VALUE rotdist)
 {
   long  rotd   = value_to_rotdist(rotdist, 16, 0xF);
@@ -569,6 +593,8 @@ void Init_popcount(void)
   rb_define_method(rb_cFixnum, "rrot16", fnum_rrot16, 1);
   rb_define_method(rb_cBignum, "rrot16", bnum_rrot16, 1);
 
+  rb_define_method(rb_cFixnum, "lrot8",  fnum_lrot8,  1);
+  rb_define_method(rb_cBignum, "lrot8",  bnum_lrot8,  1);
   rb_define_method(rb_cFixnum, "lrot16", fnum_lrot16, 1);
   rb_define_method(rb_cBignum, "lrot16", bnum_lrot16, 1);
 
