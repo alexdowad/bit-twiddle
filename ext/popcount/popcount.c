@@ -154,6 +154,35 @@ load_64_from_bignum(VALUE bnum)
   return result;
 }
 
+static inline BDIGIT
+modify_lo32_in_bdigit(BDIGIT digit, uint32_t lo32)
+{
+#if SIZEOF_BDIGIT == 32
+  return lo32;
+#else
+  return (digit & ~0xFFFFFFFF) | lo32;
+#endif
+}
+
+static inline VALUE
+modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
+{
+  BDIGIT *digit = RBIGNUM_DIGITS(bnum);
+  BDIGIT  value = modify_lo32_in_bdigit(*digit, lo32);
+  VALUE   result;
+
+/* if a 'long' is only 4 bytes, a 32-bit number could be promoted to Bignum
+ * then modifying the low 32 bits could make it fixable again */
+#if SIZEOF_LONG == 4
+  if (FIXABLE(value))
+    return LONG2FIX(value);
+#endif
+
+  result = rb_big_clone(bnum);
+  *RBIGNUM_DIGITS(result) = value;
+  return result;
+}
+
 static VALUE
 fnum_popcount(VALUE fnum)
 {
@@ -260,9 +289,7 @@ fnum_bswap32(VALUE fnum)
 static VALUE
 bnum_bswap32(VALUE bnum)
 {
-  VALUE result = rb_big_clone(bnum);
-  *RBIGNUM_DIGITS(result) = __builtin_bswap32(*RBIGNUM_DIGITS(bnum));
-  return result;
+  return modify_lo32_in_bignum(bnum, __builtin_bswap32(*RBIGNUM_DIGITS(bnum)));
 }
 
 static VALUE
@@ -389,15 +416,10 @@ fnum_lrot32(VALUE fnum, VALUE rotdist)
 static VALUE
 bnum_lrot32(VALUE bnum, VALUE rotdist)
 {
-  ulong    rotd   = value_to_rotdist(rotdist, 32, 0x1F);
-  VALUE    result = rb_big_clone(bnum);
-  BDIGIT  *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT  *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT   value  = *src;
-  uint32_t lo32   = value;
+  ulong    rotd = value_to_rotdist(rotdist, 32, 0x1F);
+  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
   lo32  = (lo32 << rotd) | (lo32 >> (-rotd & 31));
-  *dest = (value & ~0xFFFFFFFFUL) | lo32;
-  return result;
+  return modify_lo32_in_bignum(bnum, lo32);
 }
 
 static VALUE
@@ -438,20 +460,17 @@ fnum_shl32(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_shl32(VALUE bnum, VALUE shiftdist)
 {
-  VALUE   result = rb_big_clone(bnum);
-  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT  value  = *src;
-  uint32_t lo32  = value;
-  long    sdist  = value_to_shiftdist(shiftdist, 32);
+  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
+  long    sdist = value_to_shiftdist(shiftdist, 32);
 
   if (sdist >= 32 || sdist <= -32)
-    *dest = (value & ~0xFFFFFFFFUL);
+    lo32 = 0;
   else if (sdist < 0)
-    *dest = (value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)-sdist));
+    lo32 = lo32 >> ((ulong)-sdist);
   else
-    *dest = (value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)sdist));
-  return result;
+    lo32 = lo32 << ((ulong)sdist);
+
+  return modify_lo32_in_bignum(bnum, lo32);
 }
 
 static VALUE
@@ -472,20 +491,17 @@ fnum_shr32(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_shr32(VALUE bnum, VALUE shiftdist)
 {
-  VALUE   result = rb_big_clone(bnum);
-  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT  value  = *src;
-  uint32_t lo32  = value;
-  long    sdist  = value_to_shiftdist(shiftdist, 32);
+  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
+  long    sdist = value_to_shiftdist(shiftdist, 32);
 
   if (sdist >= 32 || sdist <= -32)
-    *dest = value & ~0xFFFFFFFFUL;
+    lo32 = 0;
   else if (sdist < 0)
-    *dest = (value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)-sdist));
+    lo32 = lo32 << ((ulong)-sdist);
   else
-    *dest = (value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)sdist));
-  return result;
+    lo32 = lo32 >> ((ulong)sdist);
+
+  return modify_lo32_in_bignum(bnum, lo32);
 }
 
 static VALUE
@@ -521,30 +537,25 @@ fnum_sar32(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_sar32(VALUE bnum, VALUE shiftdist)
 {
-  VALUE   result = rb_big_clone(bnum);
-  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT  value  = *src;
-  uint32_t lo32  = value;
-  long    sdist  = value_to_shiftdist(shiftdist, 32);
+  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
+  long    sdist = value_to_shiftdist(shiftdist, 32);
 
   if (sdist < 0)
     return bnum_shl32(bnum, LONG2FIX(-sdist));
 
   if ((0x80000000UL & lo32) != 0) {
-    if (sdist < 32)
+    if (sdist < 32 && sdist > -32)
       lo32 = (lo32 >> sdist) | ~(~0UL >> sdist);
     else
       lo32 = 0xFFFFFFFFUL;
   } else {
-    if (sdist < 32)
+    if (sdist < 32 && sdist > -32)
       lo32 = lo32 >> sdist;
     else
       lo32 = 0;
   }
 
-  *dest = (value & ~0xFFFFFFFFUL) | lo32;
-  return result;
+  return modify_lo32_in_bignum(bnum, lo32);
 }
 
 static VALUE
