@@ -667,18 +667,30 @@ fnum_shr64(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_shr64(VALUE bnum, VALUE shiftdist)
 {
-  VALUE   result = rb_big_clone(bnum);
-  uint64_t val   = load_64_from_bignum(bnum);
-  long    sdist  = value_to_shiftdist(shiftdist, 64);
+  VALUE    result;
+  uint64_t val    = load_64_from_bignum(bnum);
+  long     sdist  = value_to_shiftdist(shiftdist, 64);
 
   if (sdist >= 64 || sdist <= -64)
-    store_64_into_bnum(result, 0ULL);
+    val = 0ULL;
   else if (sdist < 0)
-    store_64_into_bnum(result, val << ((ulong)-sdist));
+    val = val << ((ulong)-sdist);
   else
-    store_64_into_bnum(result, val >> ((ulong)sdist));
+    val = val >> ((ulong)sdist);
 
-  return bigfixize(result);
+  if (RBIGNUM_LEN(bnum) <= (8/SIZEOF_BDIGIT)) {
+    if (RBIGNUM_POSITIVE_P(bnum)) {
+        if (POSFIXABLE(val))
+          return LONG2FIX((long)val);
+    } else if (val <= -FIXNUM_MIN) {
+      return LONG2FIX(-(long)val);
+    }
+  }
+
+  result = rb_big_clone(bnum);
+  store_64_into_bnum(result, val);
+  return result;
+
 }
 
 static VALUE
