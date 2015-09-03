@@ -603,13 +603,17 @@ bnum_sar32(VALUE bnum, VALUE shiftdist)
 static VALUE
 fnum_shl64(VALUE fnum, VALUE shiftdist)
 {
-  uint64_t val  = FIX2ULONG(fnum);
+  uint64_t val;
   long    sdist = value_to_shiftdist(shiftdist, 64);
 
-  if (sdist >= 64 || sdist <= -64)
+  if (sdist == 0)
+    return fnum;
+  else if (sdist >= 64 || sdist <= -64)
     return fix_zero;
-  else if (sdist < 0)
-    return ULL2NUM(val >> ((ulong)-sdist));
+
+  val = FIX2ULONG(fnum);
+  if (sdist < 0)
+    return LONG2FIX(val >> ((ulong)-sdist));
   else
     return ULL2NUM(val << ((ulong)sdist));
 }
