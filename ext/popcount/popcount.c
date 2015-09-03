@@ -100,15 +100,15 @@ value_to_rotdist(VALUE rotdist, long bits, long mask)
 {
   for (;;) {
     long rdist;
-    if (BIGNUM_P(rotdist)) {
-      rdist = *RBIGNUM_DIGITS(rotdist) & mask;
-      if (RBIGNUM_NEGATIVE_P(rotdist))
-        rdist = bits - rdist;
-      return rdist;
-    } else if (FIXNUM_P(rotdist)) {
+    if (FIXNUM_P(rotdist)) {
       rdist = FIX2LONG(rotdist) % bits;
       if (rdist < 0)
         rdist += bits;
+      return rdist;
+    } else if (BIGNUM_P(rotdist)) {
+      rdist = *RBIGNUM_DIGITS(rotdist) & mask;
+      if (RBIGNUM_NEGATIVE_P(rotdist))
+        rdist = bits - rdist;
       return rdist;
     } else {
       rotdist = rb_to_int(rotdist);
