@@ -470,8 +470,7 @@ fnum_lrot64(VALUE fnum, VALUE rotdist)
 {
   ulong    rotd = value_to_rotdist(rotdist, 64, 0x3F);
   uint64_t val  = FIX2ULONG(fnum);
-  val = ((val << rotd) | (val >> (-rotd & 63)));
-  return ULL2NUM(val);
+  return ULL2NUM((val << rotd) | (val >> (-rotd & 63)));
 }
 
 static VALUE
