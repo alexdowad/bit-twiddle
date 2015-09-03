@@ -6,7 +6,7 @@ describe "#rrot8" do
       1.upto(7) do |rdist|
         mask = ~((1 << rdist) - 1) & MASK_8
         expect(num.rrot8(rdist)).to eq (((num & mask) >> rdist) | ((num & ~mask) << (8 - rdist)))
-        expect(bnum.rrot8(rdist)).to eq (((bnum & mask) >> rdist) | (((bnum & ~mask) & MASK_8) << (8 - rdist)) | (bnum & ~0xFF))
+        expect(bnum.rrot8(rdist)).to eq (((bnum & mask) >> rdist) | (((bnum & ~mask) & MASK_8) << (8 - rdist)) | (bnum & ~MASK_8))
       end
     end
   end
@@ -30,7 +30,7 @@ describe "#rrot8" do
         1.upto(7) do |rdist|
           mask = (1 << (8 - rdist)) - 1
           expect(num.rrot8(-rdist)).to eq (((num & mask) << rdist) | ((num & ~mask) >> (8 - rdist)))
-          expect(bnum.rrot8(-rdist)).to eq (((bnum & mask) << rdist) | (((bnum & ~mask) & MASK_8) >> (8 - rdist)) | (bnum & ~0xFF))
+          expect(bnum.rrot8(-rdist)).to eq (((bnum & mask) << rdist) | (((bnum & ~mask) & MASK_8) >> (8 - rdist)) | (bnum & ~MASK_8))
         end
       end
     end
@@ -82,7 +82,7 @@ describe "#rrot16" do
       1.upto(15) do |rdist|
         mask = ~((1 << rdist) - 1) & MASK_16
         expect(num.rrot16(rdist)).to eq (((num & mask) >> rdist) | ((num & ~mask) << (16 - rdist)))
-        expect(bnum.rrot16(rdist)).to eq (((bnum & mask) >> rdist) | (((bnum & ~mask) & MASK_16) << (16 - rdist)) | (bnum & ~0xFFFF))
+        expect(bnum.rrot16(rdist)).to eq (((bnum & mask) >> rdist) | (((bnum & ~mask) & MASK_16) << (16 - rdist)) | (bnum & ~MASK_16))
       end
     end
   end
@@ -106,7 +106,7 @@ describe "#rrot16" do
         1.upto(15) do |rdist|
           mask = (1 << (16 - rdist)) - 1
           expect(num.rrot16(-rdist)).to eq (((num & mask) << rdist) | ((num & ~mask) >> (16 - rdist)))
-          expect(bnum.rrot16(-rdist)).to eq (((bnum & mask) << rdist) | (((bnum & ~mask) & MASK_16) >> (16 - rdist)) | (bnum & ~0xFFFF))
+          expect(bnum.rrot16(-rdist)).to eq (((bnum & mask) << rdist) | (((bnum & ~mask) & MASK_16) >> (16 - rdist)) | (bnum & ~MASK_16))
         end
       end
     end
