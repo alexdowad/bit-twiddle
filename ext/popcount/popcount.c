@@ -184,6 +184,25 @@ modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
   return result;
 }
 
+static inline VALUE
+modify_lo64_in_bignum(VALUE bnum, uint64_t lo64)
+{
+  VALUE result;
+
+  if (RBIGNUM_LEN(bnum) <= (8/SIZEOF_BDIGIT)) {
+    if (RBIGNUM_POSITIVE_P(bnum)) {
+        if (POSFIXABLE(lo64))
+          return LONG2FIX((long)lo64);
+    } else if (lo64 <= -FIXNUM_MIN) {
+      return LONG2FIX(-(long)lo64);
+    }
+  }
+
+  result = rb_big_clone(bnum);
+  store_64_into_bnum(result, lo64);
+  return result;
+}
+
 static VALUE
 fnum_popcount(VALUE fnum)
 {
@@ -621,7 +640,6 @@ fnum_shl64(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_shl64(VALUE bnum, VALUE shiftdist)
 {
-  VALUE    result;
   uint64_t val   = load_64_from_bignum(bnum);
   long     sdist  = value_to_shiftdist(shiftdist, 64);
 
@@ -632,25 +650,14 @@ bnum_shl64(VALUE bnum, VALUE shiftdist)
   else
     val = val << ((ulong)sdist);
 
-  if (RBIGNUM_LEN(bnum) <= (8/SIZEOF_BDIGIT)) {
-    if (RBIGNUM_POSITIVE_P(bnum)) {
-        if (POSFIXABLE(val))
-          return LONG2FIX((long)val);
-    } else if (val <= -FIXNUM_MIN) {
-      return LONG2FIX(-(long)val);
-    }
-  }
-
-  result = rb_big_clone(bnum);
-  store_64_into_bnum(result, val);
-  return result;
+  return modify_lo64_in_bignum(bnum, val);
 }
 
 static VALUE
 fnum_shr64(VALUE fnum, VALUE shiftdist)
 {
   uint64_t val;
-  long    sdist = value_to_shiftdist(shiftdist, 64);
+  long     sdist = value_to_shiftdist(shiftdist, 64);
 
   if (sdist == 0)
     return fnum;
@@ -667,7 +674,6 @@ fnum_shr64(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_shr64(VALUE bnum, VALUE shiftdist)
 {
-  VALUE    result;
   uint64_t val    = load_64_from_bignum(bnum);
   long     sdist  = value_to_shiftdist(shiftdist, 64);
 
@@ -678,44 +684,31 @@ bnum_shr64(VALUE bnum, VALUE shiftdist)
   else
     val = val >> ((ulong)sdist);
 
-  if (RBIGNUM_LEN(bnum) <= (8/SIZEOF_BDIGIT)) {
-    if (RBIGNUM_POSITIVE_P(bnum)) {
-        if (POSFIXABLE(val))
-          return LONG2FIX((long)val);
-    } else if (val <= -FIXNUM_MIN) {
-      return LONG2FIX(-(long)val);
-    }
-  }
-
-  result = rb_big_clone(bnum);
-  store_64_into_bnum(result, val);
-  return result;
-
+  return modify_lo64_in_bignum(bnum, val);
 }
 
 static VALUE
 bnum_sar64(VALUE bnum, VALUE shiftdist)
 {
-  VALUE   result = rb_big_clone(bnum);
-  uint64_t val   = load_64_from_bignum(bnum);
-  long    sdist  = value_to_shiftdist(shiftdist, 64);
+  uint64_t val    = load_64_from_bignum(bnum);
+  long     sdist  = value_to_shiftdist(shiftdist, 64);
 
   if (sdist < 0)
     return bnum_shl64(bnum, LONG2FIX(-sdist));
 
   if ((0x8000000000000000ULL & val) != 0) {
     if (sdist < 64 && sdist > -64)
-      store_64_into_bnum(result, (val >> sdist) | ~(~0ULL >> sdist));
+      val = (val >> sdist) | ~(~0ULL >> sdist);
     else
-      store_64_into_bnum(result, ~0ULL);
+      val = ~0ULL;
   } else {
     if (sdist < 64 && sdist > -64)
-      store_64_into_bnum(result, val >> sdist);
+      val = val >> sdist;
     else
-      store_64_into_bnum(result, 0);
+      val = 0;
   }
 
-  return bigfixize(result);
+  return modify_lo64_in_bignum(bnum, val);
 }
 
 void Init_popcount(void)
