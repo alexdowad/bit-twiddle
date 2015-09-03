@@ -671,14 +671,6 @@ bnum_shr64(VALUE bnum, VALUE shiftdist)
 }
 
 static VALUE
-fnum_sar64(VALUE fnum, VALUE shiftdist)
-{
-  /* Fixnum doesn't have enough precision that the 64th bit could be a 1
-   * Or if it does, our preprocessor directives above make sure this won't compile */
-  return fnum_shr64(fnum, shiftdist);
-}
-
-static VALUE
 bnum_sar64(VALUE bnum, VALUE shiftdist)
 {
   VALUE   result = rb_big_clone(bnum);
@@ -748,6 +740,9 @@ void Init_popcount(void)
   rb_define_method(rb_cBignum, "shr64",  bnum_shr64, 1);
   rb_define_method(rb_cFixnum, "sar32",  fnum_sar32, 1);
   rb_define_method(rb_cBignum, "sar32",  bnum_sar32, 1);
-  rb_define_method(rb_cFixnum, "sar64",  fnum_sar64, 1);
+
+  /* Fixnum doesn't have enough precision that the 64th bit could be a 1
+   * (Or if it does, our preprocessor directives above will make sure this won't compile) */
+  rb_define_method(rb_cFixnum, "sar64",  fnum_shr64, 1);
   rb_define_method(rb_cBignum, "sar64",  bnum_sar64, 1);
 }
