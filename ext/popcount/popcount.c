@@ -161,7 +161,7 @@ modify_lo32_in_bdigit(BDIGIT digit, uint32_t lo32)
 #if SIZEOF_BDIGIT == 32
   return lo32;
 #else
-  return (digit & ~0xFFFFFFFF) | lo32;
+  return (digit & ~0xFFFFFFFFL) | lo32;
 #endif
 }
 
@@ -283,7 +283,7 @@ fnum_bswap32(VALUE fnum)
   return LONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
 #elif SIZEOF_LONG >= 8
   long value = FIX2LONG(fnum);
-  return LONG2FIX((value & ~0xFFFFFFFF) | __builtin_bswap32(value));
+  return LONG2FIX((value & ~0xFFFFFFFFL) | __builtin_bswap32(value));
 #endif
 }
 
@@ -364,7 +364,7 @@ fnum_rrot32(VALUE fnum, VALUE rotdist)
   uint32_t lo32   = value;
   lo32 = (lo32 >> rotd) | (lo32 << (-rotd & 31));
 #if SIZEOF_LONG >= 8
-  return LONG2FIX((value & ~0xFFFFFFFF) | lo32);
+  return LONG2FIX((value & ~0xFFFFFFFFL) | lo32);
 #elif SIZEOF_LONG == 4
   return LONG2NUM(lo32);
 #endif
@@ -453,7 +453,7 @@ fnum_lrot32(VALUE fnum, VALUE rotdist)
   ulong    rotd  = value_to_rotdist(rotdist, 32, 0x1F);
   uint32_t lo32  = value;
   lo32 = (lo32 << rotd) | (lo32 >> (-rotd & 31));
-  return LONG2FIX((value & ~0xFFFFFFFF) | lo32);
+  return LONG2FIX((value & ~0xFFFFFFFFL) | lo32);
 }
 
 static VALUE
@@ -492,11 +492,11 @@ fnum_shl32(VALUE fnum, VALUE shiftdist)
   uint32_t lo32 = value;
 
   if (sdist >= 32 || sdist <= -32)
-    return LONG2FIX(value & ~0xFFFFFFFFUL);
+    return LONG2FIX(value & ~0xFFFFFFFFL);
   else if (sdist < 0)
-    return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)-sdist)));
+    return LONG2FIX((value & ~0xFFFFFFFFL) | (lo32 >> ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)sdist)));
+    return LONG2FIX((value & ~0xFFFFFFFFL) | (lo32 << ((ulong)sdist)));
 }
 
 static VALUE
