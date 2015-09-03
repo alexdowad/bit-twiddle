@@ -1,6 +1,3 @@
-MASK_64 = (1 << 64) - 1
-MASK_32 = (1 << 32) - 1
-
 describe "#shr32" do
   it "shifts bits in a 32-bit number to the right" do
     100.times do

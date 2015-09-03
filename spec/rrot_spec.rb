@@ -1,8 +1,3 @@
-MASK_64 = (1 << 64) - 1
-MASK_32 = (1 << 32) - 1
-MASK_16 = (1 << 16) - 1
-MASK_8  = (1 << 8)  - 1
-
 describe "#rrot8" do
   it "rotates the low 8 bits to the right" do
     100.times do

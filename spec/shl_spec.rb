@@ -1,6 +1,3 @@
-MASK_64 = (1 << 64) - 1
-MASK_32 = (1 << 32) - 1
-
 describe "#shl32" do
   it "shifts bits in a 32-bit number to the left (but cuts off high bits)" do
     100.times do
