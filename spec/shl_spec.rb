@@ -47,7 +47,7 @@ describe "#shl32" do
   it "zeroes out low 32 bits when shift distance is a Bignum" do
     expect(100.shl32(1 << 100)).to eq 0
     expect((1 << 100).shl32(1 << 100)).to eq (1 << 100)
-    (expect ((1 << 100)+1).shl32(1 << 80)).to eq (1 << 100)
+    (expect ((1 << 100)+(1 << 31)+1).shl32(1 << 80)).to eq (1 << 100)
   end
 end
 
@@ -100,6 +100,6 @@ describe "#shl64" do
   it "zeroes out low 64 bits when shift distance is a Bignum" do
     expect(100.shl64(1 << 100)).to eq 0
     expect((1 << 100).shl64(1 << 100)).to eq (1 << 100)
-    (expect ((1 << 100)+1).shl64(1 << 80)).to eq (1 << 100)
+    (expect ((1 << 100)+(1 << 63)+1).shl64(1 << 80)).to eq (1 << 100)
   end
 end
