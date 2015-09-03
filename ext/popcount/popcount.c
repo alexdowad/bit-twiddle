@@ -496,11 +496,9 @@ static VALUE
 bnum_lrot64(VALUE bnum, VALUE rotdist)
 {
   ulong    rotd   = value_to_rotdist(rotdist, 64, 0x3F);
-  VALUE    result = rb_big_clone(bnum);
   uint64_t value  = load_64_from_bignum(bnum);
   value = ((value << rotd) | (value >> (-rotd & 63)));
-  store_64_into_bnum(result, value);
-  return bigfixize(result);
+  return modify_lo64_in_bignum(bnum, value);
 }
 
 static VALUE
