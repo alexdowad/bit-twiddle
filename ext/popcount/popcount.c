@@ -444,23 +444,23 @@ bnum_lrot8(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lrot16(VALUE fnum, VALUE rotdist)
 {
-  ulong rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  long  value  = FIX2LONG(fnum);
-  ulong loword = value & 0xFFFF;
-  loword = ((loword << rotd) | (loword >> (-rotd & 15))) & 0xFFFF;
+  ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  long     value  = FIX2LONG(fnum);
+  uint16_t loword = value;
+  loword = (loword << rotd) | (loword >> (-rotd & 15));
   return LONG2FIX((value & ~0xFFFF) | loword);
 }
 
 static VALUE
 bnum_lrot16(VALUE bnum, VALUE rotdist)
 {
-  ulong   rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  VALUE   result = rb_big_clone(bnum);
-  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT  value  = *src;
-  ulong   loword = value & 0xFFFF;
-  loword = ((loword << rotd) | (loword >> (-rotd & 15))) & 0xFFFF;
+  ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  VALUE    result = rb_big_clone(bnum);
+  BDIGIT  *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT  *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT   value  = *src;
+  uint16_t loword = value;
+  loword = (loword << rotd) | (loword >> (-rotd & 15));
   *dest  = (value & ~0xFFFF) | loword;
   return result;
 }
