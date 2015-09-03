@@ -321,10 +321,8 @@ fnum_bswap64(VALUE fnum)
 static VALUE
 bnum_bswap64(VALUE bnum)
 {
-  VALUE   result = rb_big_clone(bnum);
   uint64_t value = __builtin_bswap64(load_64_from_bignum(bnum));
-  store_64_into_bnum(result, value);
-  return bigfixize(result);
+  return modify_lo64_in_bignum(bnum, value);
 }
 
 static VALUE
