@@ -681,12 +681,12 @@ bnum_sar64(VALUE bnum, VALUE shiftdist)
     return bnum_shl64(bnum, LONG2FIX(-sdist));
 
   if ((0x8000000000000000ULL & val) != 0) {
-    if (sdist < 64)
+    if (sdist < 64 && sdist > -64)
       store_64_into_bnum(result, (val >> sdist) | ~(~0ULL >> sdist));
     else
       store_64_into_bnum(result, ~0ULL);
   } else {
-    if (sdist < 64)
+    if (sdist < 64 && sdist > -64)
       store_64_into_bnum(result, val >> sdist);
     else
       store_64_into_bnum(result, 0);
