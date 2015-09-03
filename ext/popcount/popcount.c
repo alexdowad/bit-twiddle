@@ -376,6 +376,51 @@ bnum_lrot16(VALUE bnum, VALUE rotdist)
   return result;
 }
 
+static VALUE
+fnum_lrot32(VALUE fnum, VALUE rotdist)
+{
+  long     value = FIX2LONG(fnum);
+  ulong    rotd  = value_to_rotdist(rotdist, 32, 0x1F);
+  uint32_t lo32  = value;
+  lo32 = (lo32 << rotd) | (lo32 >> (-rotd & 31));
+  return LONG2FIX((value & ~0xFFFFFFFF) | lo32);
+}
+
+static VALUE
+bnum_lrot32(VALUE bnum, VALUE rotdist)
+{
+  ulong    rotd   = value_to_rotdist(rotdist, 32, 0x1F);
+  VALUE    result = rb_big_clone(bnum);
+  BDIGIT  *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT  *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT   value  = *src;
+  uint32_t lo32   = value;
+  lo32  = (lo32 << rotd) | (lo32 >> (-rotd & 31));
+  *dest = (value & ~0xFFFFFFFFUL) | lo32;
+  return result;
+}
+
+static VALUE
+fnum_lrot64(VALUE fnum, VALUE rotdist)
+{
+  ulong    rotd = value_to_rotdist(rotdist, 64, 0x3F);
+  uint64_t val  = FIX2ULONG(fnum);
+  val = ((val << rotd) | (val >> (-rotd & 63)));
+  return ULL2NUM(val);
+}
+
+static VALUE
+bnum_lrot64(VALUE bnum, VALUE rotdist)
+{
+  ulong    rotd   = value_to_rotdist(rotdist, 64, 0x3F);
+  VALUE    result = rb_big_clone(bnum);
+  uint64_t value  = load_64_from_bignum(bnum);
+  value = ((value << rotd) | (value >> (-rotd & 63)));
+  store_64_into_bnum(result, value);
+  return bigfixize(result);
+}
+
+static VALUE
 fnum_shl32(VALUE fnum, VALUE shiftdist)
 {
   long    value = FIX2LONG(fnum);
@@ -623,6 +668,10 @@ void Init_popcount(void)
   rb_define_method(rb_cBignum, "lrot8",  bnum_lrot8,  1);
   rb_define_method(rb_cFixnum, "lrot16", fnum_lrot16, 1);
   rb_define_method(rb_cBignum, "lrot16", bnum_lrot16, 1);
+  rb_define_method(rb_cFixnum, "lrot32", fnum_lrot32, 1);
+  rb_define_method(rb_cBignum, "lrot32", bnum_lrot32, 1);
+  rb_define_method(rb_cFixnum, "lrot64", fnum_lrot64, 1);
+  rb_define_method(rb_cBignum, "lrot64", bnum_lrot64, 1);
 
   rb_define_method(rb_cFixnum, "shl32",  fnum_shl32, 1);
   rb_define_method(rb_cBignum, "shl32",  bnum_shl32, 1);
