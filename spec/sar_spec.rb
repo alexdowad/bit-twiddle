@@ -73,12 +73,18 @@ describe "#sar64" do
   it "shifts bits in a 64-bit number to the right" do
     100.times do
       num = rand(1 << 64)
+      bnum = rand(1 << 100)
       1.upto(80) do |sdist|
         mask = sdist <= 64 ? ~((1 << (64 - sdist)) - 1) : MASK_64
         if 0x8000000000000000 & num == 0
           expect(num.sar64(sdist)).to eq (num >> sdist)
         else
           expect(num.sar64(sdist)).to eq ((num >> sdist) | mask) & MASK_64
+        end
+        if 0x8000000000000000 & bnum == 0
+          expect(bnum.sar64(sdist)).to eq ((bnum & MASK_64) >> sdist) | (bnum & ~MASK_64)
+        else
+          expect(bnum.sar64(sdist)).to eq ((((bnum & MASK_64) >> sdist) | mask) & MASK_64)  | (bnum & ~MASK_64)
         end
       end
     end
