@@ -76,7 +76,9 @@ static inline long
 value_to_shiftdist(VALUE shiftdist, long bits)
 {
   for (;;) {
-    if (BIGNUM_P(shiftdist)) {
+    if (FIXNUM_P(shiftdist)) {
+      return FIX2LONG(shiftdist);
+    } else if (BIGNUM_P(shiftdist)) {
       long sdist;
       if (bnum_greater(shiftdist, bits-1))
         sdist = bits;
@@ -85,8 +87,6 @@ value_to_shiftdist(VALUE shiftdist, long bits)
       if (RBIGNUM_NEGATIVE_P(shiftdist))
         sdist = -sdist;
       return sdist;
-    } else if (FIXNUM_P(shiftdist)) {
-      return FIX2LONG(shiftdist);
     } else {
       shiftdist = rb_to_int(shiftdist);
     }
