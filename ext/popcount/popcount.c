@@ -158,7 +158,7 @@ load_64_from_bignum(VALUE bnum)
 static inline BDIGIT
 modify_lo32_in_bdigit(BDIGIT digit, uint32_t lo32)
 {
-#if SIZEOF_BDIGIT == 32
+#if SIZEOF_BDIGIT == 4
   return lo32;
 #else
   return (digit & ~0xFFFFFFFFL) | lo32;
