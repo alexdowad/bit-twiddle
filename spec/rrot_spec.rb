@@ -52,8 +52,16 @@ describe "#rrot8" do
   context "with a Bignum as rotate distance" do
     it "still works the same" do
       100.times do
-        num = rand(1 << 32)
-        expect(num.rrot8(14143509919777)).to eq num.rrot8(14143509919777 % 8)
+        num   = rand(1 << 32)
+        bnum  = rand(1 << 90)
+        dist = rand(1 << 90)
+        0.upto(20) do |offset|
+          rdist = dist + offset
+          expect(num.rrot8(rdist)).to eq num.rrot8(rdist % 8)
+          expect(bnum.rrot8(rdist)).to eq bnum.rrot8(rdist % 8)
+          expect(num.rrot8(rdist) & ~MASK_8).to eq (num & ~MASK_8)
+          expect(bnum.rrot8(rdist) & ~MASK_8).to eq (bnum & ~MASK_8)
+        end
       end
     end
   end
@@ -120,8 +128,16 @@ describe "#rrot16" do
   context "with a Bignum as rotate distance" do
     it "still works the same" do
       100.times do
-        num = rand(1 << 32)
-        expect(num.rrot16(14143509919777)).to eq num.rrot16(14143509919777 % 16)
+        num   = rand(1 << 32)
+        bnum  = rand(1 << 90)
+        dist = rand(1 << 90)
+        0.upto(20) do |offset|
+          rdist = dist + offset
+          expect(num.rrot16(rdist)).to eq num.rrot16(rdist % 16)
+          expect(bnum.rrot16(rdist)).to eq bnum.rrot16(rdist % 16)
+          expect(num.rrot16(rdist) & ~MASK_16).to eq (num & ~MASK_16)
+          expect(bnum.rrot16(rdist) & ~MASK_16).to eq (bnum & ~MASK_16)
+        end
       end
     end
   end
