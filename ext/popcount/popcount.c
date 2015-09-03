@@ -93,8 +93,9 @@ value_to_shiftdist(VALUE shiftdist, long bits)
   }
 }
 
-/* 'mask' is 0x7 for 8, 0xF for 16, 0x1F for 32, 0x3F for 64 */
-static inline long
+/* 'mask' is 0x7 for 8, 0xF for 16, 0x1F for 32, 0x3F for 64
+ * return value is always positive! */
+static inline ulong
 value_to_rotdist(VALUE rotdist, long bits, long mask)
 {
   for (;;) {
@@ -311,7 +312,7 @@ static VALUE
 fnum_rrot8(VALUE fnum, VALUE rotdist)
 {
   long  value  = FIX2LONG(fnum);
-  long  rotd   = value_to_rotdist(rotdist, 8, 0x7);
+  ulong rotd   = value_to_rotdist(rotdist, 8, 0x7);
   ulong lobyte = value & 0xFF;
   lobyte = ((lobyte >> rotd) | (lobyte << (-rotd & 7))) & 0xFF;
   return LONG2FIX((value & ~0xFF) | lobyte);
@@ -324,9 +325,9 @@ bnum_rrot8(VALUE bnum, VALUE rotdist)
   BDIGIT *src    = RBIGNUM_DIGITS(bnum);
   BDIGIT *dest   = RBIGNUM_DIGITS(result);
   BDIGIT  value  = *src;
-  long    rotd   = value_to_rotdist(rotdist, 8, 0x7);
+  ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
   ulong   lobyte = value & 0xFF;
-  lobyte = ((lobyte >> (ulong)rotd) | (lobyte << (ulong)(-rotd & 7))) & 0xFF;
+  lobyte = ((lobyte >> rotd) | (lobyte << (-rotd & 7))) & 0xFF;
   *dest = ((value & ~0xFF) | lobyte);
   return result;
 }
@@ -335,7 +336,7 @@ static VALUE
 fnum_rrot16(VALUE fnum, VALUE rotdist)
 {
   long  value  = FIX2LONG(fnum);
-  long  rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  ulong rotd   = value_to_rotdist(rotdist, 16, 0xF);
   ulong loword = value & 0xFFFF;
   loword = ((loword >> rotd) | (loword << (-rotd & 15))) & 0xFFFF;
   return LONG2FIX((value & ~0xFFFF) | loword);
@@ -348,7 +349,7 @@ bnum_rrot16(VALUE bnum, VALUE rotdist)
   BDIGIT *src    = RBIGNUM_DIGITS(bnum);
   BDIGIT *dest   = RBIGNUM_DIGITS(result);
   BDIGIT  value  = *src;
-  long    rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  ulong   rotd   = value_to_rotdist(rotdist, 16, 0xF);
   ulong   loword = value & 0xFFFF;
   loword = ((loword >> rotd) | (loword << (-rotd & 15))) & 0xFFFF;
   *dest = ((value & ~0xFFFF) | loword);
@@ -400,23 +401,23 @@ bnum_rrot64(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lrot8(VALUE fnum, VALUE rotdist)
 {
-  long  rotd   = value_to_rotdist(rotdist, 8, 0x7);
+  ulong rotd   = value_to_rotdist(rotdist, 8, 0x7);
   long  value  = FIX2LONG(fnum);
   ulong lobyte = value & 0xFF;
-  lobyte = ((lobyte << (ulong)rotd) | (lobyte >> (ulong)(-rotd & 7))) & 0xFF;
+  lobyte = ((lobyte << rotd) | (lobyte >> (-rotd & 7))) & 0xFF;
   return LONG2FIX((value & ~0xFF) | lobyte);
 }
 
 static VALUE
 bnum_lrot8(VALUE bnum, VALUE rotdist)
 {
-  long    rotd   = value_to_rotdist(rotdist, 8, 0x7);
+  ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
   VALUE   result = rb_big_clone(bnum);
   BDIGIT *src    = RBIGNUM_DIGITS(bnum);
   BDIGIT *dest   = RBIGNUM_DIGITS(result);
   BDIGIT  value  = *src;
   ulong   lobyte = value & 0xFF;
-  lobyte = ((lobyte << (ulong)rotd) | (lobyte >> (ulong)(-rotd & 7))) & 0xFF;
+  lobyte = ((lobyte << rotd) | (lobyte >> (-rotd & 7))) & 0xFF;
   *dest  = (value & ~0xFF) | lobyte;
   return result;
 }
@@ -424,23 +425,23 @@ bnum_lrot8(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lrot16(VALUE fnum, VALUE rotdist)
 {
-  long  rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  ulong rotd   = value_to_rotdist(rotdist, 16, 0xF);
   long  value  = FIX2LONG(fnum);
   ulong loword = value & 0xFFFF;
-  loword = ((loword << (ulong)rotd) | (loword >> (ulong)(-rotd & 15))) & 0xFFFF;
+  loword = ((loword << rotd) | (loword >> (-rotd & 15))) & 0xFFFF;
   return LONG2FIX((value & ~0xFFFF) | loword);
 }
 
 static VALUE
 bnum_lrot16(VALUE bnum, VALUE rotdist)
 {
-  long    rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  ulong   rotd   = value_to_rotdist(rotdist, 16, 0xF);
   VALUE   result = rb_big_clone(bnum);
   BDIGIT *src    = RBIGNUM_DIGITS(bnum);
   BDIGIT *dest   = RBIGNUM_DIGITS(result);
   BDIGIT  value  = *src;
-  ulong loword   = value & 0xFFFF;
-  loword = ((loword << (ulong)rotd) | (loword >> (ulong)(-rotd & 15))) & 0xFFFF;
+  ulong   loword = value & 0xFFFF;
+  loword = ((loword << rotd) | (loword >> (-rotd & 15))) & 0xFFFF;
   *dest  = (value & ~0xFFFF) | loword;
   return result;
 }
