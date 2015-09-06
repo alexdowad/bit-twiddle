@@ -1,5 +1,3 @@
-require 'popcount'
-
 describe "#lo_bit" do
   it "returns N+1 for 1 << N" do
     0.upto(200) do |n|

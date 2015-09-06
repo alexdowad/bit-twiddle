@@ -20,11 +20,11 @@
 #endif
 
 #if SIZEOF_BDIGIT < 4
-#error "Sorry, Bignum#bswap32 and Bignum#sar32 will not work with sizeof(BDIGIT) < 4. Please report this error."
+#error "Sorry, Bignum#bswap32 and Bignum#sar32 will not work if sizeof(BDIGIT) < 4. Please report this error."
 #elif SIZEOF_BDIGIT > 8
 #error "Sorry, several methods will not work if sizeof(BDIGIT) > 8. Please report this error."
 #elif SIZEOF_LONG > 8
-#error "Sorry, Fixnum#sar64 will not work with sizeof(long) > 8. Please report this error."
+#error "Sorry, Fixnum#sar64 will not work if sizeof(long) > 8. Please report this error."
 #endif
 
 static inline VALUE
@@ -149,7 +149,7 @@ load_64_from_bignum(VALUE bnum)
 
 #if SIZEOF_BDIGIT == 4
   if (len > 1)
-    result += ((unsigned long long)*(src+1)) << 32;
+    result += ((uint64_t)*(src+1)) << 32;
 #endif
 
   return result;
@@ -175,6 +175,7 @@ modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
 /* if a 'long' is only 4 bytes, a 32-bit number could be promoted to Bignum
  * then modifying the low 32 bits could make it fixable again */
 #if SIZEOF_LONG == 4
+  /* TODO: need to pay attention to sign!!! */
   if (FIXABLE(value))
     return LONG2FIX(value);
 #endif
@@ -223,6 +224,21 @@ bnum_popcount(VALUE bnum)
     bits += popcount_bdigit(*digits);
     digits++;
   }
+
+  return LONG2FIX(bits);
+}
+
+static VALUE
+str_popcount(VALUE str)
+{
+  char *p     = RSTRING_PTR(str);
+  int  length = RSTRING_LEN(str);
+  long bits   = 0;
+
+  /* This could be made faster by processing 4/8 bytes at a time */
+
+  while (length--)
+    bits += __builtin_popcount(*p++);
 
   return LONG2FIX(bits);
 }
@@ -299,7 +315,7 @@ fnum_bswap32(VALUE fnum)
    * but a couple bits are used for tagging, so the usable precision could
    * be less than 32 bits... */
 #if SIZEOF_LONG == 4
-  return LONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
+  return ULONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
 #elif SIZEOF_LONG >= 8
   long value = FIX2LONG(fnum);
   return LONG2FIX((value & ~0xFFFFFFFFL) | __builtin_bswap32(value));
@@ -352,23 +368,23 @@ bnum_rrot8(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_rrot16(VALUE fnum, VALUE rotdist)
 {
-  long  value  = FIX2LONG(fnum);
-  ulong rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  ulong loword = value & 0xFFFF;
-  loword = ((loword >> rotd) | (loword << (-rotd & 15))) & 0xFFFF;
+  long     value  = FIX2LONG(fnum);
+  ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  uint16_t loword = value;
+  loword = (loword >> rotd) | (loword << (-rotd & 15));
   return LONG2FIX((value & ~0xFFFF) | loword);
 }
 
 static VALUE
 bnum_rrot16(VALUE bnum, VALUE rotdist)
 {
-  VALUE   result = rb_big_clone(bnum);
-  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT  value  = *src;
-  ulong   rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  ulong   loword = value & 0xFFFF;
-  loword = ((loword >> rotd) | (loword << (-rotd & 15))) & 0xFFFF;
+  VALUE    result = rb_big_clone(bnum);
+  BDIGIT  *src    = RBIGNUM_DIGITS(bnum);
+  BDIGIT  *dest   = RBIGNUM_DIGITS(result);
+  BDIGIT   value  = *src;
+  ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
+  uint16_t loword = value;
+  loword = (loword >> rotd) | (loword << (-rotd & 15));
   *dest = ((value & ~0xFFFF) | loword);
   return result;
 }
@@ -383,7 +399,7 @@ fnum_rrot32(VALUE fnum, VALUE rotdist)
 #if SIZEOF_LONG >= 8
   return LONG2FIX((value & ~0xFFFFFFFFL) | lo32);
 #elif SIZEOF_LONG == 4
-  return LONG2NUM(lo32);
+  return ULONG2NUM(lo32);
 #endif
 }
 
@@ -705,10 +721,11 @@ bnum_sar64(VALUE bnum, VALUE shiftdist)
   return modify_lo64_in_bignum(bnum, val);
 }
 
-void Init_popcount(void)
+void Init_bit_twiddle(void)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
   rb_define_method(rb_cBignum, "popcount", bnum_popcount, 0);
+  rb_define_method(rb_cString, "popcount", str_popcount,  0);
 
   rb_define_method(rb_cFixnum, "lo_bit",   fnum_lo_bit, 0);
   rb_define_method(rb_cBignum, "lo_bit",   bnum_lo_bit, 0);

@@ -1,5 +1,3 @@
-require 'popcount'
-
 describe "#popcount" do
   it "returns 0 for 0" do
     expect(0.popcount).to be 0

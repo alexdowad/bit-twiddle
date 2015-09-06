@@ -2,7 +2,7 @@ require "rake/extensiontask"
 
 ROOT = File.dirname(__FILE__)
 
-Rake::ExtensionTask.new "popcount" do |ext|
+Rake::ExtensionTask.new "bit-twiddle" do |ext|
   ext.lib_dir = "lib"
 end
 
@@ -21,7 +21,7 @@ benchmarks.each do |bench_file|
   task name do
     $LOAD_PATH.unshift ROOT+'/lib'
     require 'benchmark/ips'
-    require 'popcount'
+    require 'bit-twiddle'
     load bench_file
   end
 end

@@ -1,14 +1,14 @@
 Gem::Specification.new do |s|
-  s.name        = 'popcount-ruby'
+  s.name        = 'bit-twiddle'
   s.version     = '0.0.1'
   s.date        = '2015-08-29'
-  s.summary     = 'Fast (native) popcount for Ruby'
-  s.description = s.summary
+  s.summary     = 'Fast bitwise operations for Ruby'
+  s.description = 'Fast (native) bitwise operations for Ruby, in addition to the ones provided by the standard library'
   s.authors     = ['Alex Dowad']
   s.email       = 'alexinbeijing@gmail.com'
   s.files       = Dir["lib/*", "ext/*", "LICENSE", "*.md"]
-  s.extensions  = ['ext/popcount/extconf.rb']
-  s.homepage    = 'http://github.com/alexdowad/popcount'
+  s.extensions  = ['ext/bit-twiddle/extconf.rb']
+  s.homepage    = 'http://github.com/alexdowad/bit-twiddle'
   s.license     = 'None (Public Domain)'
 
   s.add_development_dependency "rspec", "~> 3.3"
