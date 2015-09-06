@@ -721,7 +721,7 @@ bnum_sar64(VALUE bnum, VALUE shiftdist)
   return modify_lo64_in_bignum(bnum, val);
 }
 
-void Init_bit_twiddle(void)
+void Init_bit_twiddling(void)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
   rb_define_method(rb_cBignum, "popcount", bnum_popcount, 0);
