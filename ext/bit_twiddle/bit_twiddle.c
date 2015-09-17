@@ -326,11 +326,12 @@ bnum_bswap16(VALUE bnum)
 static VALUE
 fnum_bswap32(VALUE fnum)
 {
+#if SIZEOF_LONG == 4
   /* the size of a Fixnum is always the same as 'long'
    * and the C standard guarantees 'long' is at least 32 bits
    * but a couple bits are used for tagging, so the usable precision could
-   * be less than 32 bits... */
-#if SIZEOF_LONG == 4
+   * be less than 32 bits...
+   * That is why we have to use a '2NUM' function, not '2FIX' */
   return ULONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
 #elif SIZEOF_LONG >= 8
   long value = FIX2LONG(fnum);
