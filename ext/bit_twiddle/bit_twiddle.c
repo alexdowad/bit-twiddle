@@ -361,25 +361,20 @@ bnum_bswap64(VALUE bnum)
 static VALUE
 fnum_rrot8(VALUE fnum, VALUE rotdist)
 {
-  long  value  = FIX2LONG(fnum);
-  ulong rotd   = value_to_rotdist(rotdist, 8, 0x7);
-  ulong lobyte = value & 0xFF;
-  lobyte = ((lobyte >> rotd) | (lobyte << (-rotd & 7))) & 0xFF;
-  return LONG2FIX((value & ~0xFF) | lobyte);
+  long    value  = FIX2LONG(fnum);
+  ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
+  uint8_t lobyte = value;
+  lobyte = ((lobyte >> rotd) | (lobyte << (-rotd & 7)));
+  return LONG2FIX((value & ~0xFFL) | lobyte);
 }
 
 static VALUE
 bnum_rrot8(VALUE bnum, VALUE rotdist)
 {
-  VALUE   result = rb_big_clone(bnum);
-  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT  value  = *src;
   ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
-  ulong   lobyte = value & 0xFF;
-  lobyte = ((lobyte >> rotd) | (lobyte << (-rotd & 7))) & 0xFF;
-  *dest = ((value & ~0xFF) | lobyte);
-  return result;
+  uint8_t lobyte = *RBIGNUM_DIGITS(bnum);
+  lobyte = ((lobyte >> rotd) | (lobyte << (-rotd & 7)));
+  return modify_lo8_in_bignum(bnum, lobyte);
 }
 
 static VALUE
@@ -389,21 +384,16 @@ fnum_rrot16(VALUE fnum, VALUE rotdist)
   ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
   uint16_t loword = value;
   loword = (loword >> rotd) | (loword << (-rotd & 15));
-  return LONG2FIX((value & ~0xFFFF) | loword);
+  return LONG2FIX((value & ~0xFFFFL) | loword);
 }
 
 static VALUE
 bnum_rrot16(VALUE bnum, VALUE rotdist)
 {
-  VALUE    result = rb_big_clone(bnum);
-  BDIGIT  *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT  *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT   value  = *src;
   ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  uint16_t loword = value;
+  uint16_t loword = *RBIGNUM_DIGITS(bnum);
   loword = (loword >> rotd) | (loword << (-rotd & 15));
-  *dest = ((value & ~0xFFFF) | loword);
-  return result;
+  return modify_lo16_in_bignum(bnum, loword);
 }
 
 static VALUE
@@ -413,9 +403,9 @@ fnum_rrot32(VALUE fnum, VALUE rotdist)
   ulong    rotd   = value_to_rotdist(rotdist, 32, 0x1F);
   uint32_t lo32   = value;
   lo32 = (lo32 >> rotd) | (lo32 << (-rotd & 31));
-#if SIZEOF_LONG >= 8
+#if SIZEOF_LONG == 8
   return LONG2FIX((value & ~0xFFFFFFFFL) | lo32);
-#elif SIZEOF_LONG == 4
+#else
   return ULONG2NUM(lo32);
 #endif
 }
@@ -449,25 +439,20 @@ bnum_rrot64(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lrot8(VALUE fnum, VALUE rotdist)
 {
-  ulong rotd   = value_to_rotdist(rotdist, 8, 0x7);
-  long  value  = FIX2LONG(fnum);
-  ulong lobyte = value & 0xFF;
-  lobyte = ((lobyte << rotd) | (lobyte >> (-rotd & 7))) & 0xFF;
-  return LONG2FIX((value & ~0xFF) | lobyte);
+  ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
+  long    value  = FIX2LONG(fnum);
+  uint8_t lobyte = value;
+  lobyte = ((lobyte << rotd) | (lobyte >> (-rotd & 7)));
+  return LONG2FIX((value & ~0xFFL) | lobyte);
 }
 
 static VALUE
 bnum_lrot8(VALUE bnum, VALUE rotdist)
 {
   ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
-  VALUE   result = rb_big_clone(bnum);
-  BDIGIT *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT  value  = *src;
-  ulong   lobyte = value & 0xFF;
+  uint8_t lobyte = *RBIGNUM_DIGITS(bnum);
   lobyte = ((lobyte << rotd) | (lobyte >> (-rotd & 7))) & 0xFF;
-  *dest  = (value & ~0xFF) | lobyte;
-  return result;
+  return modify_lo8_in_bignum(bnum, lobyte);
 }
 
 static VALUE
@@ -477,21 +462,16 @@ fnum_lrot16(VALUE fnum, VALUE rotdist)
   long     value  = FIX2LONG(fnum);
   uint16_t loword = value;
   loword = (loword << rotd) | (loword >> (-rotd & 15));
-  return LONG2FIX((value & ~0xFFFF) | loword);
+  return LONG2FIX((value & ~0xFFFFL) | loword);
 }
 
 static VALUE
 bnum_lrot16(VALUE bnum, VALUE rotdist)
 {
   ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  VALUE    result = rb_big_clone(bnum);
-  BDIGIT  *src    = RBIGNUM_DIGITS(bnum);
-  BDIGIT  *dest   = RBIGNUM_DIGITS(result);
-  BDIGIT   value  = *src;
-  uint16_t loword = value;
+  uint16_t loword = *RBIGNUM_DIGITS(bnum);
   loword = (loword << rotd) | (loword >> (-rotd & 15));
-  *dest  = (value & ~0xFFFF) | loword;
-  return result;
+  return modify_lo16_in_bignum(bnum, loword);
 }
 
 static VALUE
