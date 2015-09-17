@@ -3,3 +3,5 @@
 *.gem
 tmp
 doc
+*.sublime-project
+*.sublime-workspace
