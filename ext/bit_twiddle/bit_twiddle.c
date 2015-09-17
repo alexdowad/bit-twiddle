@@ -155,6 +155,22 @@ load_64_from_bignum(VALUE bnum)
   return result;
 }
 
+static inline VALUE
+modify_lo8_in_bignum(VALUE bnum, uint8_t lo8)
+{
+  VALUE result = rb_big_clone(bnum);
+  *RBIGNUM_DIGITS(result) = (*RBIGNUM_DIGITS(bnum) & ~0xFFL) | lo8;
+  return result;
+}
+
+static inline VALUE
+modify_lo16_in_bignum(VALUE bnum, uint16_t lo16)
+{
+  VALUE result = rb_big_clone(bnum);
+  *RBIGNUM_DIGITS(result) = (*RBIGNUM_DIGITS(bnum) & ~0xFFFFL) | lo16;
+  return result;
+}
+
 static inline BDIGIT
 modify_lo32_in_bdigit(BDIGIT digit, uint32_t lo32)
 {
@@ -514,13 +530,85 @@ bnum_lrot64(VALUE bnum, VALUE rotdist)
 }
 
 static VALUE
-fnum_shl32(VALUE fnum, VALUE shiftdist)
+fnum_shl8(VALUE fnum, VALUE shiftdist)
 {
   long    value = FIX2LONG(fnum);
-  long    sdist = value_to_shiftdist(shiftdist, 32);
-  uint32_t lo32 = value;
+  long    sdist = value_to_shiftdist(shiftdist, 8);
+  uint8_t lo8   = value;
 
-  if (sdist >= 32 || sdist <= -32)
+  if (sdist == 0)
+    return fnum;
+  else if (sdist >= 8 || sdist <= -8)
+    return LONG2FIX(value & ~0xFFL);
+  else if (sdist < 0)
+    return LONG2FIX((value & ~0xFFL) | (lo8 >> ((ulong)-sdist)));
+  else
+    return LONG2FIX((value & ~0xFFL) | (lo8 << ((ulong)sdist)));  
+}
+
+static VALUE
+bnum_shl8(VALUE bnum, VALUE shiftdist)
+{
+  uint16_t lo8   = *RBIGNUM_DIGITS(bnum);
+  long     sdist = value_to_shiftdist(shiftdist, 8);
+
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 8 || sdist <= -8)
+    lo8 = 0;
+  else if (sdist < 0)
+    lo8 = lo8 >> ((ulong)-sdist);
+  else
+    lo8 = lo8 << ((ulong)sdist);
+
+  return modify_lo8_in_bignum(bnum, lo8);
+}
+
+static VALUE
+fnum_shl16(VALUE fnum, VALUE shiftdist)
+{
+  long    value = FIX2LONG(fnum);
+  long    sdist = value_to_shiftdist(shiftdist, 16);
+  uint16_t lo16 = value;
+
+  if (sdist == 0)
+    return fnum;
+  else if (sdist >= 16 || sdist <= -16)
+    return LONG2FIX(value & ~0xFFFFL);
+  else if (sdist < 0)
+    return LONG2FIX((value & ~0xFFFFL) | (lo16 >> ((ulong)-sdist)));
+  else
+    return LONG2FIX((value & ~0xFFFFL) | (lo16 << ((ulong)sdist)));  
+}
+
+static VALUE
+bnum_shl16(VALUE bnum, VALUE shiftdist)
+{
+  uint16_t lo16  = *RBIGNUM_DIGITS(bnum);
+  long     sdist = value_to_shiftdist(shiftdist, 16);
+
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 16 || sdist <= -16)
+    lo16 = 0;
+  else if (sdist < 0)
+    lo16 = lo16 >> ((ulong)-sdist);
+  else
+    lo16 = lo16 << ((ulong)sdist);
+
+  return modify_lo16_in_bignum(bnum, lo16);
+}
+
+static VALUE
+fnum_shl32(VALUE fnum, VALUE shiftdist)
+{
+  long     value = FIX2LONG(fnum);
+  long     sdist = value_to_shiftdist(shiftdist, 32);
+  uint32_t lo32  = value;
+
+  if (sdist == 0)
+    return fnum;
+  else if (sdist >= 32 || sdist <= -32)
     return LONG2FIX(value & ~0xFFFFFFFFL);
   else if (sdist < 0)
     return LONG2FIX((value & ~0xFFFFFFFFL) | (lo32 >> ((ulong)-sdist)));
@@ -531,10 +619,12 @@ fnum_shl32(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_shl32(VALUE bnum, VALUE shiftdist)
 {
-  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
-  long    sdist = value_to_shiftdist(shiftdist, 32);
+  uint32_t lo32  = *RBIGNUM_DIGITS(bnum);
+  long     sdist = value_to_shiftdist(shiftdist, 32);
 
-  if (sdist >= 32 || sdist <= -32)
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 32 || sdist <= -32)
     lo32 = 0;
   else if (sdist < 0)
     lo32 = lo32 >> ((ulong)-sdist);
@@ -551,7 +641,9 @@ fnum_shr32(VALUE fnum, VALUE shiftdist)
   uint32_t lo32 = value;
   long    sdist = value_to_shiftdist(shiftdist, 32);
 
-  if (sdist >= 32 || sdist <= -32)
+  if (sdist == 0)
+    return fnum;
+  else if (sdist >= 32 || sdist <= -32)
     return LONG2FIX(value & ~0xFFFFFFFFUL);
   else if (sdist < 0)
     return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)-sdist)));
@@ -562,15 +654,17 @@ fnum_shr32(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_shr32(VALUE bnum, VALUE shiftdist)
 {
-  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
-  long    sdist = value_to_shiftdist(shiftdist, 32);
+  uint32_t lo32;
+  long     sdist = value_to_shiftdist(shiftdist, 32);
 
-  if (sdist >= 32 || sdist <= -32)
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 32 || sdist <= -32)
     lo32 = 0;
   else if (sdist < 0)
-    lo32 = lo32 << ((ulong)-sdist);
+    lo32 = *RBIGNUM_DIGITS(bnum) << ((ulong)-sdist);
   else
-    lo32 = lo32 >> ((ulong)sdist);
+    lo32 = *RBIGNUM_DIGITS(bnum) >> ((ulong)sdist);
 
   return modify_lo32_in_bignum(bnum, lo32);
 }
@@ -582,13 +676,17 @@ fnum_sar32(VALUE fnum, VALUE shiftdist)
   /* Not enough precision for 32nd bit to be a 1 */
   return fnum_shr32(fnum, shiftdist);
 #else
-  long    value = FIX2LONG(fnum);
-  uint32_t lo32 = value;
-  long    sdist = value_to_shiftdist(shiftdist, 32);
+  long     value;
+  uint32_t lo32;
+  long     sdist = value_to_shiftdist(shiftdist, 32);
 
+  if (sdist == 0)
+    return fnum;
   if (sdist < 0)
     return fnum_shl32(fnum, LONG2FIX(-sdist));
-
+  
+  value = FIX2LONG(fnum);
+  lo32  = value;
   if ((0x80000000UL & lo32) != 0) {
     if (sdist < 32)
       lo32 = (lo32 >> sdist) | ~(0xFFFFFFFFUL >> sdist);
@@ -608,12 +706,15 @@ fnum_sar32(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_sar32(VALUE bnum, VALUE shiftdist)
 {
-  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
-  long    sdist = value_to_shiftdist(shiftdist, 32);
+  uint32_t lo32;
+  long     sdist = value_to_shiftdist(shiftdist, 32);
 
-  if (sdist < 0)
+  if (sdist == 0)
+    return bnum;
+  else if (sdist < 0)
     return bnum_shl32(bnum, LONG2FIX(-sdist));
-
+  
+  lo32 = *RBIGNUM_DIGITS(bnum);
   if ((0x80000000UL & lo32) != 0) {
     if (sdist < 32 && sdist > -32)
       lo32 = (lo32 >> sdist) | ~(~0UL >> sdist);
@@ -632,33 +733,32 @@ bnum_sar32(VALUE bnum, VALUE shiftdist)
 static VALUE
 fnum_shl64(VALUE fnum, VALUE shiftdist)
 {
-  uint64_t val;
-  long    sdist = value_to_shiftdist(shiftdist, 64);
+  long sdist = value_to_shiftdist(shiftdist, 64);
 
   if (sdist == 0)
     return fnum;
   else if (sdist >= 64 || sdist <= -64)
     return fix_zero;
-
-  val = FIX2ULONG(fnum);
-  if (sdist < 0)
-    return LONG2FIX(val >> ((ulong)-sdist));
+  else if (sdist < 0)
+    return LONG2FIX(FIX2ULONG(fnum) >> ((ulong)-sdist));
   else
-    return ULL2NUM(val << ((ulong)sdist));
+    return ULL2NUM(FIX2ULONG(fnum) << ((ulong)sdist));
 }
 
 static VALUE
 bnum_shl64(VALUE bnum, VALUE shiftdist)
 {
-  uint64_t val   = load_64_from_bignum(bnum);
-  long     sdist  = value_to_shiftdist(shiftdist, 64);
+  uint64_t val;
+  long     sdist = value_to_shiftdist(shiftdist, 64);
 
-  if (sdist >= 64 || sdist <= -64)
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 64 || sdist <= -64)
     val = 0ULL;
   else if (sdist < 0)
-    val = val >> ((ulong)-sdist);
+    val = load_64_from_bignum(bnum) >> ((ulong)-sdist);
   else
-    val = val << ((ulong)sdist);
+    val = load_64_from_bignum(bnum) << ((ulong)sdist);
 
   return modify_lo64_in_bignum(bnum, val);
 }
@@ -666,33 +766,32 @@ bnum_shl64(VALUE bnum, VALUE shiftdist)
 static VALUE
 fnum_shr64(VALUE fnum, VALUE shiftdist)
 {
-  uint64_t val;
-  long     sdist = value_to_shiftdist(shiftdist, 64);
+  long sdist = value_to_shiftdist(shiftdist, 64);
 
   if (sdist == 0)
     return fnum;
   else if (sdist >= 64 || sdist <= -64)
     return fix_zero;
-
-  val = FIX2ULONG(fnum);
-  if (sdist < 0)
-    return ULL2NUM(val << ((ulong)-sdist));
+  else if (sdist < 0)
+    return ULL2NUM(FIX2ULONG(fnum) << ((ulong)-sdist));
   else
-    return LONG2FIX(val >> ((ulong)sdist));
+    return LONG2FIX(FIX2ULONG(fnum) >> ((ulong)sdist));
 }
 
 static VALUE
 bnum_shr64(VALUE bnum, VALUE shiftdist)
 {
-  uint64_t val    = load_64_from_bignum(bnum);
-  long     sdist  = value_to_shiftdist(shiftdist, 64);
+  uint64_t val;
+  long     sdist = value_to_shiftdist(shiftdist, 64);
 
-  if (sdist >= 64 || sdist <= -64)
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 64 || sdist <= -64)
     val = 0ULL;
   else if (sdist < 0)
-    val = val << ((ulong)-sdist);
+    val = load_64_from_bignum(bnum) << ((ulong)-sdist);
   else
-    val = val >> ((ulong)sdist);
+    val = load_64_from_bignum(bnum) >> ((ulong)sdist);
 
   return modify_lo64_in_bignum(bnum, val);
 }
@@ -700,12 +799,15 @@ bnum_shr64(VALUE bnum, VALUE shiftdist)
 static VALUE
 bnum_sar64(VALUE bnum, VALUE shiftdist)
 {
-  uint64_t val    = load_64_from_bignum(bnum);
-  long     sdist  = value_to_shiftdist(shiftdist, 64);
+  uint64_t val;
+  long     sdist = value_to_shiftdist(shiftdist, 64);
 
-  if (sdist < 0)
+  if (sdist == 0)
+    return bnum;
+  else if (sdist < 0)
     return bnum_shl64(bnum, LONG2FIX(-sdist));
-
+  
+  val = load_64_from_bignum(bnum);
   if ((0x8000000000000000ULL & val) != 0) {
     if (sdist < 64 && sdist > -64)
       val = (val >> sdist) | ~(~0ULL >> sdist);
@@ -721,7 +823,7 @@ bnum_sar64(VALUE bnum, VALUE shiftdist)
   return modify_lo64_in_bignum(bnum, val);
 }
 
-void Init_bit_twiddling(void)
+void Init_bit_twiddle(void)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
   rb_define_method(rb_cBignum, "popcount", bnum_popcount, 0);
@@ -757,6 +859,10 @@ void Init_bit_twiddling(void)
   rb_define_method(rb_cFixnum, "lrot64", fnum_lrot64, 1);
   rb_define_method(rb_cBignum, "lrot64", bnum_lrot64, 1);
 
+  rb_define_method(rb_cFixnum, "shl8",   fnum_shl8,  1);
+  rb_define_method(rb_cBignum, "shl8",   bnum_shl8,  1);
+  rb_define_method(rb_cFixnum, "shl16",  fnum_shl16, 1);
+  rb_define_method(rb_cBignum, "shl16",  bnum_shl16, 1);
   rb_define_method(rb_cFixnum, "shl32",  fnum_shl32, 1);
   rb_define_method(rb_cBignum, "shl32",  bnum_shl32, 1);
   rb_define_method(rb_cFixnum, "shl64",  fnum_shl64, 1);

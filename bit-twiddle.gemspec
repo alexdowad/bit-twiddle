@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.authors     = ['Alex Dowad']
   s.email       = 'alexinbeijing@gmail.com'
   s.files       = Dir["lib/*", "ext/*", "LICENSE", "*.md"]
-  s.extensions  = ['ext/bit_twiddling/extconf.rb']
+  s.extensions  = ['ext/bit_twiddle/extconf.rb']
   s.homepage    = 'http://github.com/alexdowad/bit-twiddle'
   s.license     = 'None (Public Domain)'
 

@@ -2,7 +2,7 @@ require "rake/extensiontask"
 
 ROOT = File.dirname(__FILE__)
 
-Rake::ExtensionTask.new "bit_twiddling" do |ext|
+Rake::ExtensionTask.new "bit_twiddle" do |ext|
   ext.lib_dir = "lib"
 end
 
