@@ -844,6 +844,12 @@ reverse16(uint16_t value)
   return (bitreverse_table[value & 0xFF] << 8) | bitreverse_table[value >> 8];
 }
 
+static inline uint32_t
+reverse32(uint32_t value)
+{
+  return ((uint32_t)reverse16(value) << 16) | reverse16(value >> 16);
+}
+
 static VALUE
 fnum_bitreverse8(VALUE fnum)
 {
@@ -870,6 +876,25 @@ bnum_bitreverse16(VALUE bnum)
 {
   uint16_t lo16 = *RBIGNUM_DIGITS(bnum);
   return modify_lo16_in_bignum(bnum, reverse16(lo16));
+}
+
+static VALUE
+fnum_bitreverse32(VALUE fnum)
+{
+  long     value = FIX2LONG(fnum);
+  uint32_t lo32  = value;
+#if SIZEOF_LONG == 4
+  return ULONG2NUM(reverse32(lo32));
+#else
+  return LONG2FIX((value & ~0xFFFFFFFFL) | reverse32(lo32));
+#endif
+}
+
+static VALUE
+bnum_bitreverse32(VALUE bnum)
+{
+  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
+  return modify_lo32_in_bignum(bnum, reverse32(lo32));
 }
 
 void Init_bit_twiddle(void)
@@ -932,4 +957,6 @@ void Init_bit_twiddle(void)
   rb_define_method(rb_cBignum, "bitreverse8",  bnum_bitreverse8,  0);
   rb_define_method(rb_cFixnum, "bitreverse16", fnum_bitreverse16, 0);
   rb_define_method(rb_cBignum, "bitreverse16", bnum_bitreverse16, 0);
+  rb_define_method(rb_cFixnum, "bitreverse32", fnum_bitreverse32, 0);
+  rb_define_method(rb_cBignum, "bitreverse32", bnum_bitreverse32, 0);
 }
