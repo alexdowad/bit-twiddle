@@ -212,6 +212,13 @@ modify_lo64_in_bignum(VALUE bnum, uint64_t lo64)
   return result;
 }
 
+/* Document-method: Integer#popcount
+ * Return the number of 1 bits in this integer.
+ * @example
+ *   7.popcount   # => 3
+ *   255.popcount # => 8
+ * @return [Fixnum]
+ */
 static VALUE
 fnum_popcount(VALUE fnum)
 {
@@ -236,6 +243,12 @@ bnum_popcount(VALUE bnum)
   return LONG2FIX(bits);
 }
 
+/* Document-method: String#popcount
+ * Return the number of 1 bits in all the bytes of this `String`.
+ * @example
+ *   "abc".popcount # => 10
+ * @return [Fixnum]
+ */
 static VALUE
 str_popcount(VALUE str)
 {
@@ -251,6 +264,14 @@ str_popcount(VALUE str)
   return LONG2FIX(bits);
 }
 
+/* Document-method: Integer#lo_bit
+ * Return the index of the lowest 1 bit, where the least-significant bit is index 1.
+ * If this integer is 0, return 0.
+ * @example
+ *   1.lo_bit   # => 1
+ *   128.lo_bit # => 8
+ * @return [Fixnum]
+ */
 static VALUE
 fnum_lo_bit(VALUE fnum)
 {
@@ -272,6 +293,14 @@ bnum_lo_bit(VALUE bnum)
   return LONG2FIX(bits);
 }
 
+/* Document-method: Integer#hi_bit
+ * Return the index of the highest 1 bit, where the least-significant bit is index 1.
+ * If this integer is 0, return 0.
+ * @example
+ *   1.hi_bit   # => 1
+ *   255.hi_bit # => 8
+ * @return [Fixnum]
+ */
 static VALUE
 fnum_hi_bit(VALUE fnum)
 {
@@ -299,6 +328,13 @@ bnum_hi_bit(VALUE bnum)
   return LONG2FIX(bits);
 }
 
+/* Document-method: Integer#bswap16
+ * Reverse the least-significant and second least-significant bytes of this integer.
+ * @example
+ *   0xFF00.bswap16 # => 255
+ *   0x00FF.bswap16 # => 65280
+ * @return [Integer]
+ */
 static VALUE
 fnum_bswap16(VALUE fnum)
 {
@@ -909,6 +945,12 @@ bnum_bitreverse64(VALUE bnum)
   return modify_lo64_in_bignum(bnum, reverse64(load_64_from_bignum(bnum)));
 }
 
+/* Document-class: Integer
+ * All the below methods are implemented on `Fixnum` and `Bignum`.
+ */
+/* Document-class: String
+ * Ruby's good old String.
+ */
 void Init_bit_twiddle(void)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
