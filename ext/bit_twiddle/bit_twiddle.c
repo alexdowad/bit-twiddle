@@ -171,28 +171,20 @@ modify_lo16_in_bignum(VALUE bnum, uint16_t lo16)
   return result;
 }
 
-static inline BDIGIT
-modify_lo32_in_bdigit(BDIGIT digit, uint32_t lo32)
-{
-#if SIZEOF_BDIGIT == 4
-  return lo32;
-#else
-  return (digit & ~0xFFFFFFFFL) | lo32;
-#endif
-}
-
 static inline VALUE
 modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
 {
-  BDIGIT *digit = RBIGNUM_DIGITS(bnum);
-  BDIGIT  value = modify_lo32_in_bdigit(*digit, lo32);
-  VALUE   result;
+#if SIZEOF_BDIGIT == 4
+  BDIGIT value = lo32;
+#else
+  BDIGIT value = (*RBIGNUM_DIGITS(bnum) & ~0xFFFFFFFFL) | lo32;
+#endif
+  VALUE  result;
 
-/* if a 'long' is only 4 bytes, a 32-bit number could be promoted to Bignum
- * then modifying the low 32 bits could make it fixable again */
 #if SIZEOF_LONG == 4
-  /* TODO: need to pay attention to sign!!! */
-  if (FIXABLE(value))
+  /* if a 'long' is only 4 bytes, a 32-bit number could be promoted to Bignum
+   * then modifying the low 32 bits could make it fixable again */
+  if (RBIGNUM_LEN() == 1 && FIXABLE(value))
     return LONG2FIX(value);
 #endif
 
