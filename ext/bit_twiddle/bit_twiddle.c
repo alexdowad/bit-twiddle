@@ -850,6 +850,12 @@ reverse32(uint32_t value)
   return ((uint32_t)reverse16(value) << 16) | reverse16(value >> 16);
 }
 
+static inline uint64_t
+reverse64(uint64_t value)
+{
+  return ((uint64_t)reverse32(value) << 32) | reverse32(value >> 32);
+}
+
 static VALUE
 fnum_bitreverse8(VALUE fnum)
 {
@@ -895,6 +901,20 @@ bnum_bitreverse32(VALUE bnum)
 {
   uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
   return modify_lo32_in_bignum(bnum, reverse32(lo32));
+}
+
+static VALUE
+fnum_bitreverse64(VALUE fnum)
+{
+  /* on a 32-bit system, do we want sign extension of a negative 32-bit value into 64 bits??? */
+  uint64_t lo64 = FIX2ULONG(fnum);
+  return ULL2NUM(reverse64(lo64));
+}
+
+static VALUE
+bnum_bitreverse64(VALUE bnum)
+{
+  return modify_lo64_in_bignum(bnum, reverse64(load_64_from_bignum(bnum)));
 }
 
 void Init_bit_twiddle(void)
@@ -959,4 +979,6 @@ void Init_bit_twiddle(void)
   rb_define_method(rb_cBignum, "bitreverse16", bnum_bitreverse16, 0);
   rb_define_method(rb_cFixnum, "bitreverse32", fnum_bitreverse32, 0);
   rb_define_method(rb_cBignum, "bitreverse32", bnum_bitreverse32, 0);
+  rb_define_method(rb_cFixnum, "bitreverse64", fnum_bitreverse64, 0);
+  rb_define_method(rb_cBignum, "bitreverse64", bnum_bitreverse64, 0);
 }

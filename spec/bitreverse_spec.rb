@@ -108,3 +108,34 @@ describe "#bitreverse32" do
     end
   end
 end
+
+describe "#bitreverse64" do
+  [[0, 0],
+   [1, (1 << 63)],
+   [2, (1 << 62)],
+   [3, (3 << 62)],
+   [4, (1 << 61)],
+   [255, 0xFF00000000000000],
+   [0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF]].each do |a,b|
+    context "on #{a}" do
+      it "returns #{b}" do
+        expect(a.bitreverse64).to eq b
+      end
+    end
+
+    context "on (1 << 80) + #{a}" do
+      it "returns (1 << 80) + #{b}" do
+        expect(((1 << 80) + a).bitreverse64).to eq ((1 << 80) + b)
+      end
+    end
+  end
+
+  100.times do
+    bits = 64.times.collect { %w[0 1].sample }.join
+    context "on #{bits.to_i(2)}" do
+      it "returns #{bits.reverse.to_i(2)}" do
+        expect(bits.to_i(2).bitreverse64).to eq bits.reverse.to_i(2)
+      end
+    end
+  end
+end
