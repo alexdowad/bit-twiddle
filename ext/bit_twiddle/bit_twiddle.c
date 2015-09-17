@@ -27,38 +27,6 @@
 #error "Sorry, Fixnum#sar64 will not work if sizeof(long) > 8. Please report this error."
 #endif
 
-static inline VALUE
-bigfixize(VALUE x)
-{
-  size_t n   = RBIGNUM_LEN(x);
-  BDIGIT *ds = RBIGNUM_DIGITS(x);
-  ulong u;
-
-  while (n && ds[n-1] == 0)
-    n--;
-
-  if (n == 0) {
-    return INT2FIX(0);
-  } else if (n == 1) {
-    u = ds[0];
-  } else if (SIZEOF_BDIGIT == 4 && SIZEOF_LONG == 8 && n == 2) {
-    u = ds[0] + ((ulong)ds[1] << 32);
-  } else {
-    goto return_big;
-  }
-
-  if (RBIGNUM_POSITIVE_P(x)) {
-      if (POSFIXABLE(u))
-        return LONG2FIX((long)u);
-  } else if (u <= -FIXNUM_MIN) {
-    return LONG2FIX(-(long)u);
-  }
-
-return_big:
-  rb_big_resize(x, n);
-  return x;
-}
-
 static inline int
 bnum_greater(VALUE bnum, BDIGIT value)
 {
