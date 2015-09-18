@@ -913,8 +913,11 @@ bnum_bitreverse64(VALUE bnum)
   return modify_lo64_in_bignum(bnum, reverse64(load_64_from_bignum(bnum)));
 }
 
-/* Document-class: Integer
- * All the below methods are implemented on `Fixnum` and `Bignum`.
+/* Document-class: Fixnum
+ * Ruby's good old Fixnum.
+ */
+/* Document-class: Bignum
+ * Ruby's good old Bignum.
  */
 /* Document-class: String
  * Ruby's good old String.
