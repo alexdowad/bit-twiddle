@@ -27,7 +27,7 @@
 #error "Sorry, Fixnum#sar64 will not work if sizeof(long) > 8. Please report this error."
 #endif
 
-static inline int
+static int
 bnum_greater(VALUE bnum, BDIGIT value)
 {
   BDIGIT *digits = RBIGNUM_DIGITS(bnum);
@@ -40,7 +40,7 @@ bnum_greater(VALUE bnum, BDIGIT value)
   return 0;
 }
 
-static inline long
+static long
 value_to_shiftdist(VALUE shiftdist, long bits)
 {
   for (;;) {
@@ -63,7 +63,7 @@ value_to_shiftdist(VALUE shiftdist, long bits)
 
 /* 'mask' is 0x7 for 8, 0xF for 16, 0x1F for 32, 0x3F for 64
  * return value is always positive! */
-static inline ulong
+static ulong
 value_to_rotdist(VALUE rotdist, long bits, long mask)
 {
   for (;;) {
@@ -84,7 +84,7 @@ value_to_rotdist(VALUE rotdist, long bits, long mask)
   }
 }
 
-static inline void
+static void
 store_64_into_bnum(VALUE bnum, uint64_t int64)
 {
   BDIGIT *dest = RBIGNUM_DIGITS(bnum);
@@ -108,7 +108,7 @@ store_64_into_bnum(VALUE bnum, uint64_t int64)
 #endif
 }
 
-static inline uint64_t
+static uint64_t
 load_64_from_bignum(VALUE bnum)
 {
   BDIGIT *src = RBIGNUM_DIGITS(bnum);
@@ -123,7 +123,7 @@ load_64_from_bignum(VALUE bnum)
   return result;
 }
 
-static inline VALUE
+static VALUE
 modify_lo8_in_bignum(VALUE bnum, uint8_t lo8)
 {
   VALUE result = rb_big_clone(bnum);
@@ -131,7 +131,7 @@ modify_lo8_in_bignum(VALUE bnum, uint8_t lo8)
   return result;
 }
 
-static inline VALUE
+static VALUE
 modify_lo16_in_bignum(VALUE bnum, uint16_t lo16)
 {
   VALUE result = rb_big_clone(bnum);
@@ -139,7 +139,7 @@ modify_lo16_in_bignum(VALUE bnum, uint16_t lo16)
   return result;
 }
 
-static inline VALUE
+static VALUE
 modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
 {
 #if SIZEOF_BDIGIT == 4
@@ -161,7 +161,7 @@ modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
   return result;
 }
 
-static inline VALUE
+static VALUE
 modify_lo64_in_bignum(VALUE bnum, uint64_t lo64)
 {
   VALUE result;
