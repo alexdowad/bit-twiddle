@@ -314,6 +314,16 @@ bnum_bswap16(VALUE bnum)
   return result;
 }
 
+/* Reverse the least-significant 4 bytes of this integer.
+ *
+ * Does not reverse bits within each byte. This can be used to swap endianness
+ * of a 32-bit integer.
+ *
+ * @example
+ *   0xaabbccdd.bswap32.to_s(16) # => "ddccbbaa"
+ *
+ * @return [Integer]
+ */
 static VALUE
 fnum_bswap32(VALUE fnum)
 {
@@ -336,6 +346,16 @@ bnum_bswap32(VALUE bnum)
   return modify_lo32_in_bignum(bnum, __builtin_bswap32(*RBIGNUM_DIGITS(bnum)));
 }
 
+/* Reverse the least-significant 8 bytes of this integer.
+ *
+ * Does not reverse bits within each byte. This can be used to swap endianness
+ * of a 64-bit integer.
+ *
+ * @example
+ *   0xaabbccdd.bswap64.to_s(16) # => "ddccbbaa00000000"
+ *
+ * @return [Integer]
+ */
 static VALUE
 fnum_bswap64(VALUE fnum)
 {
@@ -349,6 +369,18 @@ bnum_bswap64(VALUE bnum)
   return modify_lo64_in_bignum(bnum, value);
 }
 
+/* Right-rotation ("circular shift") of the low 8 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the left
+ * instead.
+ *
+ * @example
+ *   0b01110001.rrot8(1).to_s(2) # => "10111000"
+ *   0b01110001.rrot8(3).to_s(2) # => "101110"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
 static VALUE
 fnum_rrot8(VALUE fnum, VALUE rotdist)
 {
@@ -368,6 +400,18 @@ bnum_rrot8(VALUE bnum, VALUE rotdist)
   return modify_lo8_in_bignum(bnum, lobyte);
 }
 
+/* Right-rotation ("circular shift") of the low 16 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the left
+ * instead.
+ *
+ * @example
+ *   0b0111000101110001.rrot16(1).to_s(2) # => "1011100010111000"
+ *   0b0111000101110001.rrot16(3).to_s(2) # => "10111000101110"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
 static VALUE
 fnum_rrot16(VALUE fnum, VALUE rotdist)
 {
@@ -387,6 +431,17 @@ bnum_rrot16(VALUE bnum, VALUE rotdist)
   return modify_lo16_in_bignum(bnum, loword);
 }
 
+/* Right-rotation ("circular shift") of the low 32 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the left
+ * instead.
+ *
+ * @example
+ *   0xaabbccdd.rrot32(4).to_s(16) # => "daabbccd"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
 static VALUE
 fnum_rrot32(VALUE fnum, VALUE rotdist)
 {
@@ -410,6 +465,17 @@ bnum_rrot32(VALUE bnum, VALUE rotdist)
   return modify_lo32_in_bignum(bnum, lo32);
 }
 
+/* Right-rotation ("circular shift") of the low 64 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the left
+ * instead.
+ *
+ * @example
+ *   0x11223344aabbccdd.rrot64(4).to_s(16) # => "d11223344aabbccd"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
 static VALUE
 fnum_rrot64(VALUE fnum, VALUE rotdist)
 {
@@ -427,6 +493,18 @@ bnum_rrot64(VALUE bnum, VALUE rotdist)
   return modify_lo64_in_bignum(bnum, value);
 }
 
+/* Left-rotation ("circular shift") of the low 8 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the right
+ * instead.
+ *
+ * @example
+ *   0b01110001.lrot8(1).to_s(2) # => "11100010"
+ *   0b01110001.lrot8(3).to_s(2) # => "10001011"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
 static VALUE
 fnum_lrot8(VALUE fnum, VALUE rotdist)
 {
@@ -446,6 +524,18 @@ bnum_lrot8(VALUE bnum, VALUE rotdist)
   return modify_lo8_in_bignum(bnum, lobyte);
 }
 
+/* Left-rotation ("circular shift") of the low 16 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the right
+ * instead.
+ *
+ * @example
+ *   0b0111000101110001.lrot16(1).to_s(2) # => "1110001011100010"
+ *   0b0111000101110001.lrot16(3).to_s(2) # => "1000101110001011"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
 static VALUE
 fnum_lrot16(VALUE fnum, VALUE rotdist)
 {
@@ -465,6 +555,17 @@ bnum_lrot16(VALUE bnum, VALUE rotdist)
   return modify_lo16_in_bignum(bnum, loword);
 }
 
+/* Left-rotation ("circular shift") of the low 32 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the right
+ * instead.
+ *
+ * @example
+ *   0xaabbccdd.lrot32(4).to_s(16) # => "abbccdda"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
 static VALUE
 fnum_lrot32(VALUE fnum, VALUE rotdist)
 {
@@ -484,6 +585,17 @@ bnum_lrot32(VALUE bnum, VALUE rotdist)
   return modify_lo32_in_bignum(bnum, lo32);
 }
 
+/* Left-rotation ("circular shift") of the low 64 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the right
+ * instead.
+ *
+ * @example
+ *   0x11223344aabbccdd.lrot64(4).to_s(16) # => "1223344aabbccdd1"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
 static VALUE
 fnum_lrot64(VALUE fnum, VALUE rotdist)
 {
