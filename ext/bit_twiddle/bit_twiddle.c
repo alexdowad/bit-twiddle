@@ -180,8 +180,7 @@ modify_lo64_in_bignum(VALUE bnum, uint64_t lo64)
   return result;
 }
 
-/* Document-method: Integer#popcount
- * Return the number of 1 bits in this integer.
+/* Return the number of 1 bits in this integer.
  * @example
  *   7.popcount   # => 3
  *   255.popcount # => 8
@@ -211,8 +210,7 @@ bnum_popcount(VALUE bnum)
   return LONG2FIX(bits);
 }
 
-/* Document-method: String#popcount
- * Return the number of 1 bits in all the bytes of this `String`.
+/* Return the number of 1 bits in all the bytes of this `String`.
  * @example
  *   "abc".popcount # => 10
  * @return [Fixnum]
@@ -232,8 +230,7 @@ str_popcount(VALUE str)
   return LONG2FIX(bits);
 }
 
-/* Document-method: Integer#lo_bit
- * Return the index of the lowest 1 bit, where the least-significant bit is index 1.
+/* Return the index of the lowest 1 bit, where the least-significant bit is index 1.
  * If this integer is 0, return 0.
  * @example
  *   1.lo_bit   # => 1
@@ -261,8 +258,7 @@ bnum_lo_bit(VALUE bnum)
   return LONG2FIX(bits);
 }
 
-/* Document-method: Integer#hi_bit
- * Return the index of the highest 1 bit, where the least-significant bit is index 1.
+/* Return the index of the highest 1 bit, where the least-significant bit is index 1.
  * If this integer is 0, return 0.
  * @example
  *   1.hi_bit   # => 1
@@ -296,8 +292,7 @@ bnum_hi_bit(VALUE bnum)
   return LONG2FIX(bits);
 }
 
-/* Document-method: Integer#bswap16
- * Reverse the least-significant and second least-significant bytes of this integer.
+/* Reverse the least-significant and second least-significant bytes of this integer.
  * @example
  *   0xFF00.bswap16 # => 255
  *   0x00FF.bswap16 # => 65280
