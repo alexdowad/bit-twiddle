@@ -803,6 +803,54 @@ bnum_lshift64(VALUE bnum, VALUE shiftdist)
   return modify_lo64_in_bignum(bnum, val);
 }
 
+/* Right-shift of the low 8 bits in this integer.
+ *
+ * If the shift distance is negative, a left shift will be performed instead.
+ * The vacated bit positions will be filled with 0 bits. If shift distance is
+ * more than 7 or less than -7, the low 8 bits will all be zeroed.
+ *
+ * @example
+ *   0x11223344.rshift8(1).to_s(16) # => "11223322"
+ *   0x11223344.rshift8(2).to_s(16) # => "11223311"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
+static VALUE
+fnum_rshift8(VALUE fnum, VALUE shiftdist)
+{
+  long    value = FIX2LONG(fnum);
+  long    sdist = value_to_shiftdist(shiftdist, 8);
+  uint8_t lo8   = value;
+
+  if (sdist == 0)
+    return fnum;
+  else if (sdist >= 8 || sdist <= -8)
+    return LONG2FIX(value & ~0xFFL);
+  else if (sdist < 0)
+    return LONG2FIX((value & ~0xFFL) | (uint8_t)(lo8 << ((ulong)-sdist)));
+  else
+    return LONG2FIX((value & ~0xFFL) | (lo8 >> ((ulong)sdist)));
+}
+
+static VALUE
+bnum_rshift8(VALUE bnum, VALUE shiftdist)
+{
+  uint8_t lo8   = *RBIGNUM_DIGITS(bnum);
+  long    sdist = value_to_shiftdist(shiftdist, 8);
+
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 8 || sdist <= -8)
+    lo8 = 0;
+  else if (sdist < 0)
+    lo8 = lo8 << ((ulong)-sdist);
+  else
+    lo8 = lo8 >> ((ulong)sdist);
+
+  return modify_lo8_in_bignum(bnum, lo8);
+}
+
 static VALUE
 fnum_rshift32(VALUE fnum, VALUE shiftdist)
 {
@@ -1126,6 +1174,8 @@ void Init_bit_twiddle(void)
   rb_define_method(rb_cFixnum, "lshift64",  fnum_lshift64, 1);
   rb_define_method(rb_cBignum, "lshift64",  bnum_lshift64, 1);
 
+  rb_define_method(rb_cFixnum, "rshift8",   fnum_rshift8,  1);
+  rb_define_method(rb_cBignum, "rshift8",   bnum_rshift8,  1);
   rb_define_method(rb_cFixnum, "rshift32",  fnum_rshift32, 1);
   rb_define_method(rb_cBignum, "rshift32",  bnum_rshift32, 1);
   rb_define_method(rb_cFixnum, "rshift64",  fnum_rshift64, 1);
