@@ -141,8 +141,7 @@ describe "#rshift32" do
   it "doesn't modify bits above the 32nd" do
     100.times do
       num = rand(1 << 64)
-      0.upto(64) do |sdist|
-        expect(num.rshift32(sdist) & MASK_32).to eq ((num & MASK_32) >> sdist)
+      -64.upto(64) do |sdist|
         expect(num.rshift32(sdist) & ~MASK_32).to eq (num & ~MASK_32)
       end
     end
@@ -194,8 +193,7 @@ describe "#rshift64" do
   it "doesn't modify bits above the 64th" do
     100.times do
       num = rand(1 << 100)
-      0.upto(100) do |sdist|
-        expect(num.rshift64(sdist) & MASK_64).to eq ((num & MASK_64) >> sdist)
+      -100.upto(100) do |sdist|
         expect(num.rshift64(sdist) & ~MASK_64).to eq (num & ~MASK_64)
       end
     end
