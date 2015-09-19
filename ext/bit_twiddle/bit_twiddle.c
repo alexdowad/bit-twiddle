@@ -899,6 +899,19 @@ bnum_rshift16(VALUE bnum, VALUE shiftdist)
   return modify_lo16_in_bignum(bnum, lo16);
 }
 
+/* Right-shift of the low 32 bits in this integer.
+ *
+ * If the shift distance is negative, a left shift will be performed instead.
+ * The vacated bit positions will be filled with 0 bits. If shift distance is
+ * more than 31 or less than -31, the low 32 bits will all be zeroed.
+ *
+ * @example
+ *   0x11223344.rshift32(1).to_s(16) # => "89119a2"
+ *   0x11223344.rshift32(2).to_s(16) # => "4488cd1"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
 static VALUE
 fnum_rshift32(VALUE fnum, VALUE shiftdist)
 {
@@ -932,6 +945,52 @@ bnum_rshift32(VALUE bnum, VALUE shiftdist)
     lo32 = *RBIGNUM_DIGITS(bnum) >> ((ulong)sdist);
 
   return modify_lo32_in_bignum(bnum, lo32);
+}
+
+/* Right-shift of the low 64 bits in this integer.
+ *
+ * If the shift distance is negative, a left shift will be performed instead.
+ * The vacated bit positions will be filled with 0 bits. If shift distance is
+ * more than 63 or less than -63, the low 64 bits will all be zeroed.
+ *
+ * @example
+ *   0x1122334411223344.rshift64(1).to_s(16) # => "89119a2089119a2"
+ *   0x1122334411223344.rshift64(2).to_s(16) # => "4488cd104488cd1"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
+static VALUE
+fnum_rshift64(VALUE fnum, VALUE shiftdist)
+{
+  long sdist = value_to_shiftdist(shiftdist, 64);
+
+  if (sdist == 0)
+    return fnum;
+  else if (sdist >= 64 || sdist <= -64)
+    return fix_zero;
+  else if (sdist < 0)
+    return ULL2NUM(FIX2ULONG(fnum) << ((ulong)-sdist));
+  else
+    return LONG2FIX(FIX2ULONG(fnum) >> ((ulong)sdist));
+}
+
+static VALUE
+bnum_rshift64(VALUE bnum, VALUE shiftdist)
+{
+  uint64_t val;
+  long     sdist = value_to_shiftdist(shiftdist, 64);
+
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 64 || sdist <= -64)
+    val = 0ULL;
+  else if (sdist < 0)
+    val = load_64_from_bignum(bnum) << ((ulong)-sdist);
+  else
+    val = load_64_from_bignum(bnum) >> ((ulong)sdist);
+
+  return modify_lo64_in_bignum(bnum, val);
 }
 
 static VALUE
@@ -993,39 +1052,6 @@ bnum_arith_rshift32(VALUE bnum, VALUE shiftdist)
   }
 
   return modify_lo32_in_bignum(bnum, lo32);
-}
-
-static VALUE
-fnum_rshift64(VALUE fnum, VALUE shiftdist)
-{
-  long sdist = value_to_shiftdist(shiftdist, 64);
-
-  if (sdist == 0)
-    return fnum;
-  else if (sdist >= 64 || sdist <= -64)
-    return fix_zero;
-  else if (sdist < 0)
-    return ULL2NUM(FIX2ULONG(fnum) << ((ulong)-sdist));
-  else
-    return LONG2FIX(FIX2ULONG(fnum) >> ((ulong)sdist));
-}
-
-static VALUE
-bnum_rshift64(VALUE bnum, VALUE shiftdist)
-{
-  uint64_t val;
-  long     sdist = value_to_shiftdist(shiftdist, 64);
-
-  if (sdist == 0)
-    return bnum;
-  else if (sdist >= 64 || sdist <= -64)
-    val = 0ULL;
-  else if (sdist < 0)
-    val = load_64_from_bignum(bnum) << ((ulong)-sdist);
-  else
-    val = load_64_from_bignum(bnum) >> ((ulong)sdist);
-
-  return modify_lo64_in_bignum(bnum, val);
 }
 
 static VALUE
