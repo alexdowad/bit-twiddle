@@ -640,7 +640,7 @@ fnum_lshift8(VALUE fnum, VALUE shiftdist)
   else if (sdist < 0)
     return LONG2FIX((value & ~0xFFL) | (lo8 >> ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFL) | (lo8 << ((ulong)sdist)));  
+    return LONG2FIX((value & ~0xFFL) | (uint8_t)(lo8 << ((ulong)sdist)));
 }
 
 static VALUE
@@ -688,7 +688,7 @@ fnum_lshift16(VALUE fnum, VALUE shiftdist)
   else if (sdist < 0)
     return LONG2FIX((value & ~0xFFFFL) | (lo16 >> ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFFFL) | (lo16 << ((ulong)sdist)));  
+    return LONG2FIX((value & ~0xFFFFL) | (uint16_t)(lo16 << ((ulong)sdist)));
 }
 
 static VALUE
@@ -736,7 +736,7 @@ fnum_lshift32(VALUE fnum, VALUE shiftdist)
   else if (sdist < 0)
     return LONG2FIX((value & ~0xFFFFFFFFL) | (lo32 >> ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFFFFFFFL) | (lo32 << ((ulong)sdist)));
+    return LONG2FIX((value & ~0xFFFFFFFFL) | (uint32_t)(lo32 << ((ulong)sdist)));
 }
 
 static VALUE
@@ -911,7 +911,7 @@ fnum_rshift32(VALUE fnum, VALUE shiftdist)
   else if (sdist >= 32 || sdist <= -32)
     return LONG2FIX(value & ~0xFFFFFFFFUL);
   else if (sdist < 0)
-    return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 << ((ulong)-sdist)));
+    return LONG2FIX((value & ~0xFFFFFFFFUL) | (uint32_t)(lo32 << ((ulong)-sdist)));
   else
     return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)sdist)));
 }
