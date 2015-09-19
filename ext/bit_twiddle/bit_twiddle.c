@@ -804,7 +804,7 @@ bnum_shl64(VALUE bnum, VALUE shiftdist)
 }
 
 static VALUE
-fnum_shr32(VALUE fnum, VALUE shiftdist)
+fnum_rshift32(VALUE fnum, VALUE shiftdist)
 {
   long    value = FIX2LONG(fnum);
   uint32_t lo32 = value;
@@ -821,7 +821,7 @@ fnum_shr32(VALUE fnum, VALUE shiftdist)
 }
 
 static VALUE
-bnum_shr32(VALUE bnum, VALUE shiftdist)
+bnum_rshift32(VALUE bnum, VALUE shiftdist)
 {
   uint32_t lo32;
   long     sdist = value_to_shiftdist(shiftdist, 32);
@@ -843,7 +843,7 @@ fnum_sar32(VALUE fnum, VALUE shiftdist)
 {
 #if SIZEOF_LONG == 4
   /* Not enough precision for 32nd bit to be a 1 */
-  return fnum_shr32(fnum, shiftdist);
+  return fnum_rshift32(fnum, shiftdist);
 #else
   long     value;
   uint32_t lo32;
@@ -900,7 +900,7 @@ bnum_sar32(VALUE bnum, VALUE shiftdist)
 }
 
 static VALUE
-fnum_shr64(VALUE fnum, VALUE shiftdist)
+fnum_rshift64(VALUE fnum, VALUE shiftdist)
 {
   long sdist = value_to_shiftdist(shiftdist, 64);
 
@@ -915,7 +915,7 @@ fnum_shr64(VALUE fnum, VALUE shiftdist)
 }
 
 static VALUE
-bnum_shr64(VALUE bnum, VALUE shiftdist)
+bnum_rshift64(VALUE bnum, VALUE shiftdist)
 {
   uint64_t val;
   long     sdist = value_to_shiftdist(shiftdist, 64);
@@ -1125,16 +1125,18 @@ void Init_bit_twiddle(void)
   rb_define_method(rb_cBignum, "shl32",  bnum_shl32, 1);
   rb_define_method(rb_cFixnum, "shl64",  fnum_shl64, 1);
   rb_define_method(rb_cBignum, "shl64",  bnum_shl64, 1);
-  rb_define_method(rb_cFixnum, "shr32",  fnum_shr32, 1);
-  rb_define_method(rb_cBignum, "shr32",  bnum_shr32, 1);
-  rb_define_method(rb_cFixnum, "shr64",  fnum_shr64, 1);
-  rb_define_method(rb_cBignum, "shr64",  bnum_shr64, 1);
+
+  rb_define_method(rb_cFixnum, "rshift32",  fnum_rshift32, 1);
+  rb_define_method(rb_cBignum, "rshift32",  bnum_rshift32, 1);
+  rb_define_method(rb_cFixnum, "rshift64",  fnum_rshift64, 1);
+  rb_define_method(rb_cBignum, "rshift64",  bnum_rshift64, 1);
+
   rb_define_method(rb_cFixnum, "sar32",  fnum_sar32, 1);
   rb_define_method(rb_cBignum, "sar32",  bnum_sar32, 1);
 
   /* Fixnum doesn't have enough precision that the 64th bit could be a 1
    * (Or if it does, our preprocessor directives above will make sure this won't compile) */
-  rb_define_method(rb_cFixnum, "sar64",  fnum_shr64, 1);
+  rb_define_method(rb_cFixnum, "sar64",  fnum_rshift64, 1);
   rb_define_method(rb_cBignum, "sar64",  bnum_sar64, 1);
 
   rb_define_method(rb_cFixnum, "bitreverse8",  fnum_bitreverse8,  0);

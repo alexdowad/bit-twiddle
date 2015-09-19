@@ -21,14 +21,14 @@ Benchmark.ips do |b|
   #   n.times { dwords.each { |x| x << 32 }}
   # end
 
-  b.report "#shr32 on 32-bit Fixnum, small shift (x1000)" do |n|
-    n.times { dwords.each { |x| x.shr32(16) }}
+  b.report "#rshift32 on 32-bit Fixnum, small shift (x1000)" do |n|
+    n.times { dwords.each { |x| x.rshift32(16) }}
   end
   # b.report "#>> on 32-bit Fixnum, small shift (x1000)" do |n|
   #   n.times { dwords.each { |x| x >> 16 }}
   # end
-  b.report "#shr32 on 32-bit Fixnum, large shift (x1000)" do |n|
-    n.times { dwords.each { |x| x.shr32(32) }}
+  b.report "#rshift32 on 32-bit Fixnum, large shift (x1000)" do |n|
+    n.times { dwords.each { |x| x.rshift32(32) }}
   end
   # b.report "#>> on 32-bit Fixnum, large shift (x1000)" do |n|
   #   n.times { dwords.each { |x| x >> 32 }}
@@ -47,11 +47,11 @@ Benchmark.ips do |b|
   b.report "#shl64 on 64-bit Fixnum, large shift (x1000)" do |n|
     n.times { dwords.each { |x| x.shl64(64) }}
   end
-  b.report "#shr64 on 64-bit Fixnum, small shift (x1000)" do |n|
-    n.times { dwords.each { |x| x.shr64(32) }}
+  b.report "#rshift64 on 64-bit Fixnum, small shift (x1000)" do |n|
+    n.times { dwords.each { |x| x.rshift64(32) }}
   end
-  b.report "#shr64 on 64-bit Fixnum, large shift (x1000)" do |n|
-    n.times { dwords.each { |x| x.shr64(64) }}
+  b.report "#rshift64 on 64-bit Fixnum, large shift (x1000)" do |n|
+    n.times { dwords.each { |x| x.rshift64(64) }}
   end
   b.report "#sar64 on 64-bit Fixnum, small shift (x1000)" do |n|
     n.times { dwords.each { |x| x.sar64(32) }}
@@ -66,11 +66,11 @@ Benchmark.ips do |b|
   b.report "#shl64 on Bignum, large shift (x1000)" do |n|
     n.times { bnums.each { |x| x.shl64(64) }}
   end
-  b.report "#shr64 on Bignum, small shift (x1000)" do |n|
-    n.times { bnums.each { |x| x.shr64(32) }}
+  b.report "#rshift64 on Bignum, small shift (x1000)" do |n|
+    n.times { bnums.each { |x| x.rshift64(32) }}
   end
-  b.report "#shr64 on Bignum, large shift (x1000)" do |n|
-    n.times { bnums.each { |x| x.shr64(64) }}
+  b.report "#rshift64 on Bignum, large shift (x1000)" do |n|
+    n.times { bnums.each { |x| x.rshift64(64) }}
   end
   b.report "#sar64 on Bignum, small shift (x1000)" do |n|
     n.times { bnums.each { |x| x.sar64(32) }}
