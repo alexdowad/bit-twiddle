@@ -34,11 +34,11 @@ Benchmark.ips do |b|
   #   n.times { dwords.each { |x| x >> 32 }}
   # end
 
-  b.report "#sar32 on 32-bit Fixnum, small shift (x1000)" do |n|
-    n.times { dwords.each { |x| x.sar32(16) }}
+  b.report "#arith_rshift32 on 32-bit Fixnum, small shift (x1000)" do |n|
+    n.times { dwords.each { |x| x.arith_rshift32(16) }}
   end
-  b.report "#sar32 on 32-bit Fixnum, large shift (x1000)" do |n|
-    n.times { dwords.each { |x| x.sar32(32) }}
+  b.report "#arith_rshift32 on 32-bit Fixnum, large shift (x1000)" do |n|
+    n.times { dwords.each { |x| x.arith_rshift32(32) }}
   end
 
   b.report "#lshift64 on 64-bit Fixnum, small shift (x1000)" do |n|
@@ -53,11 +53,11 @@ Benchmark.ips do |b|
   b.report "#rshift64 on 64-bit Fixnum, large shift (x1000)" do |n|
     n.times { dwords.each { |x| x.rshift64(64) }}
   end
-  b.report "#sar64 on 64-bit Fixnum, small shift (x1000)" do |n|
-    n.times { dwords.each { |x| x.sar64(32) }}
+  b.report "#arith_rshift64 on 64-bit Fixnum, small shift (x1000)" do |n|
+    n.times { dwords.each { |x| x.arith_rshift64(32) }}
   end
-  b.report "#sar64 on 64-bit Fixnum, large shift (x1000)" do |n|
-    n.times { dwords.each { |x| x.sar64(64) }}
+  b.report "#arith_rshift64 on 64-bit Fixnum, large shift (x1000)" do |n|
+    n.times { dwords.each { |x| x.arith_rshift64(64) }}
   end
 
   b.report "#lshift64 on Bignum, small shift (x1000)" do |n|
@@ -72,10 +72,10 @@ Benchmark.ips do |b|
   b.report "#rshift64 on Bignum, large shift (x1000)" do |n|
     n.times { bnums.each { |x| x.rshift64(64) }}
   end
-  b.report "#sar64 on Bignum, small shift (x1000)" do |n|
-    n.times { bnums.each { |x| x.sar64(32) }}
+  b.report "#arith_rshift64 on Bignum, small shift (x1000)" do |n|
+    n.times { bnums.each { |x| x.arith_rshift64(32) }}
   end
-  b.report "#sar64 on Bignum, large shift (x1000)" do |n|
-    n.times { bnums.each { |x| x.sar64(64) }}
+  b.report "#arith_rshift64 on Bignum, large shift (x1000)" do |n|
+    n.times { bnums.each { |x| x.arith_rshift64(64) }}
   end
 end

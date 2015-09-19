@@ -20,11 +20,11 @@
 #endif
 
 #if SIZEOF_BDIGIT < 4
-#error "Sorry, Bignum#bswap32 and Bignum#sar32 will not work if sizeof(BDIGIT) < 4. Please report this error."
+#error "Sorry, Bignum#bswap32 and Bignum#arith_rshift32 will not work if sizeof(BDIGIT) < 4. Please report this error."
 #elif SIZEOF_BDIGIT > 8
 #error "Sorry, several methods will not work if sizeof(BDIGIT) > 8. Please report this error."
 #elif SIZEOF_LONG > 8
-#error "Sorry, Fixnum#sar64 will not work if sizeof(long) > 8. Please report this error."
+#error "Sorry, Fixnum#arith_rshift64 will not work if sizeof(long) > 8. Please report this error."
 #endif
 
 static int
@@ -839,7 +839,7 @@ bnum_rshift32(VALUE bnum, VALUE shiftdist)
 }
 
 static VALUE
-fnum_sar32(VALUE fnum, VALUE shiftdist)
+fnum_arith_rshift32(VALUE fnum, VALUE shiftdist)
 {
 #if SIZEOF_LONG == 4
   /* Not enough precision for 32nd bit to be a 1 */
@@ -873,7 +873,7 @@ fnum_sar32(VALUE fnum, VALUE shiftdist)
 }
 
 static VALUE
-bnum_sar32(VALUE bnum, VALUE shiftdist)
+bnum_arith_rshift32(VALUE bnum, VALUE shiftdist)
 {
   uint32_t lo32;
   long     sdist = value_to_shiftdist(shiftdist, 32);
@@ -933,7 +933,7 @@ bnum_rshift64(VALUE bnum, VALUE shiftdist)
 }
 
 static VALUE
-bnum_sar64(VALUE bnum, VALUE shiftdist)
+bnum_arith_rshift64(VALUE bnum, VALUE shiftdist)
 {
   uint64_t val;
   long     sdist = value_to_shiftdist(shiftdist, 64);
@@ -1131,13 +1131,13 @@ void Init_bit_twiddle(void)
   rb_define_method(rb_cFixnum, "rshift64",  fnum_rshift64, 1);
   rb_define_method(rb_cBignum, "rshift64",  bnum_rshift64, 1);
 
-  rb_define_method(rb_cFixnum, "sar32",  fnum_sar32, 1);
-  rb_define_method(rb_cBignum, "sar32",  bnum_sar32, 1);
+  rb_define_method(rb_cFixnum, "arith_rshift32",  fnum_arith_rshift32, 1);
+  rb_define_method(rb_cBignum, "arith_rshift32",  bnum_arith_rshift32, 1);
 
   /* Fixnum doesn't have enough precision that the 64th bit could be a 1
    * (Or if it does, our preprocessor directives above will make sure this won't compile) */
-  rb_define_method(rb_cFixnum, "sar64",  fnum_rshift64, 1);
-  rb_define_method(rb_cBignum, "sar64",  bnum_sar64, 1);
+  rb_define_method(rb_cFixnum, "arith_rshift64",  fnum_rshift64, 1);
+  rb_define_method(rb_cBignum, "arith_rshift64",  bnum_arith_rshift64, 1);
 
   rb_define_method(rb_cFixnum, "bitreverse8",  fnum_bitreverse8,  0);
   rb_define_method(rb_cBignum, "bitreverse8",  bnum_bitreverse8,  0);
