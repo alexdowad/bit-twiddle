@@ -646,8 +646,8 @@ fnum_lshift8(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_lshift8(VALUE bnum, VALUE shiftdist)
 {
-  uint16_t lo8   = *RBIGNUM_DIGITS(bnum);
-  long     sdist = value_to_shiftdist(shiftdist, 8);
+  uint8_t lo8   = *RBIGNUM_DIGITS(bnum);
+  long    sdist = value_to_shiftdist(shiftdist, 8);
 
   if (sdist == 0)
     return bnum;
