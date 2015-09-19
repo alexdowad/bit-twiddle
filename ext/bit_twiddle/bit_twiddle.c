@@ -627,7 +627,7 @@ bnum_lrot64(VALUE bnum, VALUE rotdist)
  * @return [Integer]
  */
 static VALUE
-fnum_shl8(VALUE fnum, VALUE shiftdist)
+fnum_lshift8(VALUE fnum, VALUE shiftdist)
 {
   long    value = FIX2LONG(fnum);
   long    sdist = value_to_shiftdist(shiftdist, 8);
@@ -644,7 +644,7 @@ fnum_shl8(VALUE fnum, VALUE shiftdist)
 }
 
 static VALUE
-bnum_shl8(VALUE bnum, VALUE shiftdist)
+bnum_lshift8(VALUE bnum, VALUE shiftdist)
 {
   uint16_t lo8   = *RBIGNUM_DIGITS(bnum);
   long     sdist = value_to_shiftdist(shiftdist, 8);
@@ -675,7 +675,7 @@ bnum_shl8(VALUE bnum, VALUE shiftdist)
  * @return [Integer]
  */
 static VALUE
-fnum_shl16(VALUE fnum, VALUE shiftdist)
+fnum_lshift16(VALUE fnum, VALUE shiftdist)
 {
   long    value = FIX2LONG(fnum);
   long    sdist = value_to_shiftdist(shiftdist, 16);
@@ -692,7 +692,7 @@ fnum_shl16(VALUE fnum, VALUE shiftdist)
 }
 
 static VALUE
-bnum_shl16(VALUE bnum, VALUE shiftdist)
+bnum_lshift16(VALUE bnum, VALUE shiftdist)
 {
   uint16_t lo16  = *RBIGNUM_DIGITS(bnum);
   long     sdist = value_to_shiftdist(shiftdist, 16);
@@ -723,7 +723,7 @@ bnum_shl16(VALUE bnum, VALUE shiftdist)
  * @return [Integer]
  */
 static VALUE
-fnum_shl32(VALUE fnum, VALUE shiftdist)
+fnum_lshift32(VALUE fnum, VALUE shiftdist)
 {
   long     value = FIX2LONG(fnum);
   long     sdist = value_to_shiftdist(shiftdist, 32);
@@ -740,7 +740,7 @@ fnum_shl32(VALUE fnum, VALUE shiftdist)
 }
 
 static VALUE
-bnum_shl32(VALUE bnum, VALUE shiftdist)
+bnum_lshift32(VALUE bnum, VALUE shiftdist)
 {
   uint32_t lo32  = *RBIGNUM_DIGITS(bnum);
   long     sdist = value_to_shiftdist(shiftdist, 32);
@@ -771,7 +771,7 @@ bnum_shl32(VALUE bnum, VALUE shiftdist)
  * @return [Integer]
  */
 static VALUE
-fnum_shl64(VALUE fnum, VALUE shiftdist)
+fnum_lshift64(VALUE fnum, VALUE shiftdist)
 {
   long sdist = value_to_shiftdist(shiftdist, 64);
 
@@ -786,7 +786,7 @@ fnum_shl64(VALUE fnum, VALUE shiftdist)
 }
 
 static VALUE
-bnum_shl64(VALUE bnum, VALUE shiftdist)
+bnum_lshift64(VALUE bnum, VALUE shiftdist)
 {
   uint64_t val;
   long     sdist = value_to_shiftdist(shiftdist, 64);
@@ -852,7 +852,7 @@ fnum_sar32(VALUE fnum, VALUE shiftdist)
   if (sdist == 0)
     return fnum;
   if (sdist < 0)
-    return fnum_shl32(fnum, LONG2FIX(-sdist));
+    return fnum_lshift32(fnum, LONG2FIX(-sdist));
   
   value = FIX2LONG(fnum);
   lo32  = value;
@@ -881,7 +881,7 @@ bnum_sar32(VALUE bnum, VALUE shiftdist)
   if (sdist == 0)
     return bnum;
   else if (sdist < 0)
-    return bnum_shl32(bnum, LONG2FIX(-sdist));
+    return bnum_lshift32(bnum, LONG2FIX(-sdist));
   
   lo32 = *RBIGNUM_DIGITS(bnum);
   if ((0x80000000UL & lo32) != 0) {
@@ -941,7 +941,7 @@ bnum_sar64(VALUE bnum, VALUE shiftdist)
   if (sdist == 0)
     return bnum;
   else if (sdist < 0)
-    return bnum_shl64(bnum, LONG2FIX(-sdist));
+    return bnum_lshift64(bnum, LONG2FIX(-sdist));
   
   val = load_64_from_bignum(bnum);
   if ((0x8000000000000000ULL & val) != 0) {
@@ -1117,14 +1117,14 @@ void Init_bit_twiddle(void)
   rb_define_method(rb_cFixnum, "lrot64", fnum_lrot64, 1);
   rb_define_method(rb_cBignum, "lrot64", bnum_lrot64, 1);
 
-  rb_define_method(rb_cFixnum, "shl8",   fnum_shl8,  1);
-  rb_define_method(rb_cBignum, "shl8",   bnum_shl8,  1);
-  rb_define_method(rb_cFixnum, "shl16",  fnum_shl16, 1);
-  rb_define_method(rb_cBignum, "shl16",  bnum_shl16, 1);
-  rb_define_method(rb_cFixnum, "shl32",  fnum_shl32, 1);
-  rb_define_method(rb_cBignum, "shl32",  bnum_shl32, 1);
-  rb_define_method(rb_cFixnum, "shl64",  fnum_shl64, 1);
-  rb_define_method(rb_cBignum, "shl64",  bnum_shl64, 1);
+  rb_define_method(rb_cFixnum, "lshift8",   fnum_lshift8,  1);
+  rb_define_method(rb_cBignum, "lshift8",   bnum_lshift8,  1);
+  rb_define_method(rb_cFixnum, "lshift16",  fnum_lshift16, 1);
+  rb_define_method(rb_cBignum, "lshift16",  bnum_lshift16, 1);
+  rb_define_method(rb_cFixnum, "lshift32",  fnum_lshift32, 1);
+  rb_define_method(rb_cBignum, "lshift32",  bnum_lshift32, 1);
+  rb_define_method(rb_cFixnum, "lshift64",  fnum_lshift64, 1);
+  rb_define_method(rb_cBignum, "lshift64",  bnum_lshift64, 1);
 
   rb_define_method(rb_cFixnum, "rshift32",  fnum_rshift32, 1);
   rb_define_method(rb_cBignum, "rshift32",  bnum_rshift32, 1);
