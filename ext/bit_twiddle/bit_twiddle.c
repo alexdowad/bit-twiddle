@@ -851,6 +851,54 @@ bnum_rshift8(VALUE bnum, VALUE shiftdist)
   return modify_lo8_in_bignum(bnum, lo8);
 }
 
+/* Right-shift of the low 16 bits in this integer.
+ *
+ * If the shift distance is negative, a left shift will be performed instead.
+ * The vacated bit positions will be filled with 0 bits. If shift distance is
+ * more than 15 or less than -15, the low 16 bits will all be zeroed.
+ *
+ * @example
+ *   0x11223344.rshift16(1).to_s(16) # => "112219a2"
+ *   0x11223344.rshift16(2).to_s(16) # => "11220cd1"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
+static VALUE
+fnum_rshift16(VALUE fnum, VALUE shiftdist)
+{
+  long    value = FIX2LONG(fnum);
+  long    sdist = value_to_shiftdist(shiftdist, 16);
+  uint16_t lo16 = value;
+
+  if (sdist == 0)
+    return fnum;
+  else if (sdist >= 16 || sdist <= -16)
+    return LONG2FIX(value & ~0xFFFFL);
+  else if (sdist < 0)
+    return LONG2FIX((value & ~0xFFFFL) | (uint16_t)(lo16 << ((ulong)-sdist)));
+  else
+    return LONG2FIX((value & ~0xFFFFL) | (lo16 >> ((ulong)sdist)));
+}
+
+static VALUE
+bnum_rshift16(VALUE bnum, VALUE shiftdist)
+{
+  uint16_t lo16  = *RBIGNUM_DIGITS(bnum);
+  long     sdist = value_to_shiftdist(shiftdist, 16);
+
+  if (sdist == 0)
+    return bnum;
+  else if (sdist >= 16 || sdist <= -16)
+    lo16 = 0;
+  else if (sdist < 0)
+    lo16 = lo16 << ((ulong)-sdist);
+  else
+    lo16 = lo16 >> ((ulong)sdist);
+
+  return modify_lo16_in_bignum(bnum, lo16);
+}
+
 static VALUE
 fnum_rshift32(VALUE fnum, VALUE shiftdist)
 {
@@ -1176,6 +1224,8 @@ void Init_bit_twiddle(void)
 
   rb_define_method(rb_cFixnum, "rshift8",   fnum_rshift8,  1);
   rb_define_method(rb_cBignum, "rshift8",   bnum_rshift8,  1);
+  rb_define_method(rb_cFixnum, "rshift16",  fnum_rshift16, 1);
+  rb_define_method(rb_cBignum, "rshift16",  bnum_rshift16, 1);
   rb_define_method(rb_cFixnum, "rshift32",  fnum_rshift32, 1);
   rb_define_method(rb_cBignum, "rshift32",  bnum_rshift32, 1);
   rb_define_method(rb_cFixnum, "rshift64",  fnum_rshift64, 1);
