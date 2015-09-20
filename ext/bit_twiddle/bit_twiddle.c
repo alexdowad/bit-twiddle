@@ -126,7 +126,12 @@ load_64_from_bignum(VALUE bnum)
 static VALUE
 modify_lo8_in_bignum(VALUE bnum, uint8_t lo8)
 {
-  VALUE result = rb_big_clone(bnum);
+  VALUE result;
+
+  if (lo8 == (uint8_t)*RBIGNUM_DIGITS(bnum))
+    return bnum;
+
+  result = rb_big_clone(bnum);
   *RBIGNUM_DIGITS(result) = (*RBIGNUM_DIGITS(bnum) & ~0xFFL) | lo8;
   return result;
 }
@@ -134,7 +139,12 @@ modify_lo8_in_bignum(VALUE bnum, uint8_t lo8)
 static VALUE
 modify_lo16_in_bignum(VALUE bnum, uint16_t lo16)
 {
-  VALUE result = rb_big_clone(bnum);
+  VALUE result;
+
+  if (lo16 == (uint16_t)*RBIGNUM_DIGITS(bnum))
+    return bnum;
+
+  result = rb_big_clone(bnum);
   *RBIGNUM_DIGITS(result) = (*RBIGNUM_DIGITS(bnum) & ~0xFFFFL) | lo16;
   return result;
 }
@@ -142,12 +152,17 @@ modify_lo16_in_bignum(VALUE bnum, uint16_t lo16)
 static VALUE
 modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
 {
-#if SIZEOF_BDIGIT == 4
-  BDIGIT value = lo32;
-#else
-  BDIGIT value = (*RBIGNUM_DIGITS(bnum) & ~0xFFFFFFFFL) | lo32;
-#endif
+  BDIGIT value;
   VALUE  result;
+
+  if (lo32 == (uint32_t)*RBIGNUM_DIGITS(bnum))
+    return bnum;
+
+#if SIZEOF_BDIGIT == 4
+  value = lo32;
+#else
+  value = (*RBIGNUM_DIGITS(bnum) & ~0xFFFFFFFFL) | lo32;
+#endif
 
 #if SIZEOF_LONG == 4
   /* if a 'long' is only 4 bytes, a 32-bit number could be promoted to Bignum
