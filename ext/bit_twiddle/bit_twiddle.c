@@ -369,6 +369,21 @@ bnum_bswap64(VALUE bnum)
   return modify_lo64_in_bignum(bnum, value);
 }
 
+#define def_rot_helpers(bits) \
+  static inline uint##bits##_t rrot##bits(uint##bits##_t value, VALUE rotdist) { \
+    ulong rotd = value_to_rotdist(rotdist, bits, bits-1); \
+    return (value >> rotd) | (value << (-rotd & (bits-1))); \
+  } \
+  static inline uint##bits##_t lrot##bits(uint##bits##_t value, VALUE rotdist) { \
+    ulong rotd = value_to_rotdist(rotdist, bits, bits-1); \
+    return (value << rotd) | (value >> (-rotd & (bits-1))); \
+  }
+
+def_rot_helpers(8);
+def_rot_helpers(16);
+def_rot_helpers(32);
+def_rot_helpers(64);
+
 /* Right-rotation ("circular shift") of the low 8 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the left
@@ -384,20 +399,14 @@ bnum_bswap64(VALUE bnum)
 static VALUE
 fnum_rrot8(VALUE fnum, VALUE rotdist)
 {
-  long    value  = FIX2LONG(fnum);
-  ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
-  uint8_t lobyte = value;
-  lobyte = ((lobyte >> rotd) | (lobyte << (-rotd & 7)));
-  return LONG2FIX((value & ~0xFFL) | lobyte);
+  long value = FIX2LONG(fnum);
+  return LONG2FIX((value & ~0xFFL) | rrot8(value, rotdist));
 }
 
 static VALUE
 bnum_rrot8(VALUE bnum, VALUE rotdist)
 {
-  ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
-  uint8_t lobyte = *RBIGNUM_DIGITS(bnum);
-  lobyte = ((lobyte >> rotd) | (lobyte << (-rotd & 7)));
-  return modify_lo8_in_bignum(bnum, lobyte);
+  return modify_lo8_in_bignum(bnum, rrot8(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Right-rotation ("circular shift") of the low 16 bits in this integer.
@@ -415,20 +424,14 @@ bnum_rrot8(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_rrot16(VALUE fnum, VALUE rotdist)
 {
-  long     value  = FIX2LONG(fnum);
-  ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  uint16_t loword = value;
-  loword = (loword >> rotd) | (loword << (-rotd & 15));
-  return LONG2FIX((value & ~0xFFFFL) | loword);
+  long value = FIX2LONG(fnum);
+  return LONG2FIX((value & ~0xFFFFL) | rrot16(value, rotdist));
 }
 
 static VALUE
 bnum_rrot16(VALUE bnum, VALUE rotdist)
 {
-  ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  uint16_t loword = *RBIGNUM_DIGITS(bnum);
-  loword = (loword >> rotd) | (loword << (-rotd & 15));
-  return modify_lo16_in_bignum(bnum, loword);
+  return modify_lo16_in_bignum(bnum, rrot16(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Right-rotation ("circular shift") of the low 32 bits in this integer.
@@ -446,23 +449,17 @@ static VALUE
 fnum_rrot32(VALUE fnum, VALUE rotdist)
 {
   long     value  = FIX2LONG(fnum);
-  ulong    rotd   = value_to_rotdist(rotdist, 32, 0x1F);
-  uint32_t lo32   = value;
-  lo32 = (lo32 >> rotd) | (lo32 << (-rotd & 31));
 #if SIZEOF_LONG == 8
-  return LONG2FIX((value & ~0xFFFFFFFFL) | lo32);
+  return LONG2FIX((value & ~0xFFFFFFFFL) | rrot32(value, rotdist));
 #else
-  return ULONG2NUM(lo32);
+  return ULONG2NUM(rrot32(value, rotdist));
 #endif
 }
 
 static VALUE
 bnum_rrot32(VALUE bnum, VALUE rotdist)
 {
-  ulong    rotd = value_to_rotdist(rotdist, 32, 0x1F);
-  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
-  lo32 = (lo32 >> rotd) | (lo32 << (-rotd & 31));
-  return modify_lo32_in_bignum(bnum, lo32);
+  return modify_lo32_in_bignum(bnum, rrot32(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Right-rotation ("circular shift") of the low 64 bits in this integer.
@@ -479,18 +476,13 @@ bnum_rrot32(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_rrot64(VALUE fnum, VALUE rotdist)
 {
-  ulong    rotd  = value_to_rotdist(rotdist, 64, 0x3F);
-  uint64_t value = FIX2ULONG(fnum);
-  return ULL2NUM((value >> rotd) | (value << (-rotd & 63)));
+  return ULL2NUM(rrot64(FIX2ULONG(fnum), rotdist));
 }
 
 static VALUE
 bnum_rrot64(VALUE bnum, VALUE rotdist)
 {
-  ulong    rotd   = value_to_rotdist(rotdist, 64, 0x3F);
-  uint64_t value  = load_64_from_bignum(bnum);
-  value = ((value >> rotd) | (value << (-rotd & 63)));
-  return modify_lo64_in_bignum(bnum, value);
+  return modify_lo64_in_bignum(bnum, rrot64(load_64_from_bignum(bnum), rotdist));
 }
 
 /* Left-rotation ("circular shift") of the low 8 bits in this integer.
@@ -508,20 +500,14 @@ bnum_rrot64(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lrot8(VALUE fnum, VALUE rotdist)
 {
-  ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
-  long    value  = FIX2LONG(fnum);
-  uint8_t lobyte = value;
-  lobyte = ((lobyte << rotd) | (lobyte >> (-rotd & 7)));
-  return LONG2FIX((value & ~0xFFL) | lobyte);
+  long value = FIX2LONG(fnum);
+  return LONG2FIX((value & ~0xFFL) | lrot8(value, rotdist));
 }
 
 static VALUE
 bnum_lrot8(VALUE bnum, VALUE rotdist)
 {
-  ulong   rotd   = value_to_rotdist(rotdist, 8, 0x7);
-  uint8_t lobyte = *RBIGNUM_DIGITS(bnum);
-  lobyte = ((lobyte << rotd) | (lobyte >> (-rotd & 7))) & 0xFF;
-  return modify_lo8_in_bignum(bnum, lobyte);
+  return modify_lo8_in_bignum(bnum, lrot8(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Left-rotation ("circular shift") of the low 16 bits in this integer.
@@ -539,20 +525,14 @@ bnum_lrot8(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lrot16(VALUE fnum, VALUE rotdist)
 {
-  ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  long     value  = FIX2LONG(fnum);
-  uint16_t loword = value;
-  loword = (loword << rotd) | (loword >> (-rotd & 15));
-  return LONG2FIX((value & ~0xFFFFL) | loword);
+  long value = FIX2LONG(fnum);
+  return LONG2FIX((value & ~0xFFFFL) | lrot16(value, rotdist));
 }
 
 static VALUE
 bnum_lrot16(VALUE bnum, VALUE rotdist)
 {
-  ulong    rotd   = value_to_rotdist(rotdist, 16, 0xF);
-  uint16_t loword = *RBIGNUM_DIGITS(bnum);
-  loword = (loword << rotd) | (loword >> (-rotd & 15));
-  return modify_lo16_in_bignum(bnum, loword);
+  return modify_lo16_in_bignum(bnum, lrot16(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Left-rotation ("circular shift") of the low 32 bits in this integer.
@@ -569,20 +549,14 @@ bnum_lrot16(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lrot32(VALUE fnum, VALUE rotdist)
 {
-  long     value = FIX2LONG(fnum);
-  ulong    rotd  = value_to_rotdist(rotdist, 32, 0x1F);
-  uint32_t lo32  = value;
-  lo32 = (lo32 << rotd) | (lo32 >> (-rotd & 31));
-  return LONG2FIX((value & ~0xFFFFFFFFL) | lo32);
+  long value = FIX2LONG(fnum);
+  return LONG2FIX((value & ~0xFFFFFFFFL) | lrot32(value, rotdist));
 }
 
 static VALUE
 bnum_lrot32(VALUE bnum, VALUE rotdist)
 {
-  ulong    rotd = value_to_rotdist(rotdist, 32, 0x1F);
-  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
-  lo32  = (lo32 << rotd) | (lo32 >> (-rotd & 31));
-  return modify_lo32_in_bignum(bnum, lo32);
+  return modify_lo32_in_bignum(bnum, lrot32(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Left-rotation ("circular shift") of the low 64 bits in this integer.
@@ -599,18 +573,13 @@ bnum_lrot32(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lrot64(VALUE fnum, VALUE rotdist)
 {
-  ulong    rotd = value_to_rotdist(rotdist, 64, 0x3F);
-  uint64_t val  = FIX2ULONG(fnum);
-  return ULL2NUM((val << rotd) | (val >> (-rotd & 63)));
+  return ULL2NUM(lrot64(FIX2ULONG(fnum), rotdist));
 }
 
 static VALUE
 bnum_lrot64(VALUE bnum, VALUE rotdist)
 {
-  ulong    rotd   = value_to_rotdist(rotdist, 64, 0x3F);
-  uint64_t value  = load_64_from_bignum(bnum);
-  value = ((value << rotd) | (value >> (-rotd & 63)));
-  return modify_lo64_in_bignum(bnum, value);
+  return modify_lo64_in_bignum(bnum, lrot64(load_64_from_bignum(bnum), rotdist));
 }
 
 /* Left-shift of the low 8 bits in this integer.
