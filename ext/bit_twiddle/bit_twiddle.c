@@ -995,8 +995,7 @@ static const uint8_t bitreverse_table[] =
   0x0F, 0x8F, 0x4F, 0xCF, 0x2F, 0xAF, 0x6F, 0xEF, 0x1F, 0x9F, 0x5F, 0xDF, 0x3F, 0xBF, 0x7F, 0xFF
 };
 
-static inline uint8_t
-reverse8(uint8_t value)
+static inline uint8_t reverse8(uint8_t value)
 {
   #if SIZEOF_LONG == 8
     /* 64-bit CPU
@@ -1009,20 +1008,17 @@ reverse8(uint8_t value)
   #endif
 }
 
-static inline uint16_t
-reverse16(uint16_t value)
+static inline uint16_t reverse16(uint16_t value)
 {
   return (bitreverse_table[value & 0xFF] << 8) | bitreverse_table[value >> 8];
 }
 
-static inline uint32_t
-reverse32(uint32_t value)
+static inline uint32_t reverse32(uint32_t value)
 {
   return ((uint32_t)reverse16(value) << 16) | reverse16(value >> 16);
 }
 
-static inline uint64_t
-reverse64(uint64_t value)
+static inline uint64_t reverse64(uint64_t value)
 {
   return ((uint64_t)reverse32(value) << 32) | reverse32(value >> 32);
 }
