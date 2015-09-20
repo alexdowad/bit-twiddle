@@ -608,6 +608,25 @@ bnum_lrot64(VALUE bnum, VALUE rotdist)
     if (sdist >= bits || sdist <= -bits) return 0; \
     else if (sdist < 0) return value << ((uint)-sdist); \
     else return value >> (uint)sdist; \
+  } \
+  static uint##bits##_t arith_rshift##bits(uint##bits##_t value, VALUE shiftdist) { \
+    long sdist = value_to_shiftdist(shiftdist, bits); \
+    if (sdist >= bits) { \
+      if ((((uint##bits##_t)1 << (bits - 1)) & value) != 0) \
+        return ~0; \
+      else \
+        return 0; \
+    } else if (sdist <= -bits) { \
+      return 0; \
+    } else if (sdist < 0) { \
+      return value << ((uint)-sdist); \
+    } else if (RSHIFT_IS_ARITH) { \
+      return (int##bits##_t)value >> (int)sdist; \
+    } else if ((((uint##bits##_t)1 << (bits - 1)) & value) != 0) { \
+      return (value >> sdist) | ~(((uint##bits##_t)~0) >> sdist); \
+    } else { \
+      return value >> sdist; \
+    } \
   }
 
 def_shift_helpers(8);
@@ -882,91 +901,78 @@ bnum_rshift64(VALUE bnum, VALUE shiftdist)
 }
 
 static VALUE
+fnum_arith_rshift8(VALUE fnum, VALUE shiftdist)
+{
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
+    return fnum;
+  else
+    return LONG2FIX((value & ~0xFFUL) | arith_rshift8(value, shiftdist));
+}
+
+static VALUE
+bnum_arith_rshift8(VALUE bnum, VALUE shiftdist)
+{
+  if (shiftdist == fix_zero)
+    return bnum;
+  else
+    return modify_lo8_in_bignum(bnum, arith_rshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
+}
+
+static VALUE
+fnum_arith_rshift16(VALUE fnum, VALUE shiftdist)
+{
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
+    return fnum;
+  else
+    return LONG2FIX((value & ~0xFFFFUL) | arith_rshift16(value, shiftdist));
+}
+
+static VALUE
+bnum_arith_rshift16(VALUE bnum, VALUE shiftdist)
+{
+  if (shiftdist == fix_zero)
+    return bnum;
+  else
+    return modify_lo16_in_bignum(bnum, arith_rshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
+}
+
+static VALUE
 fnum_arith_rshift32(VALUE fnum, VALUE shiftdist)
 {
-#if SIZEOF_LONG == 4
-  /* Not enough precision for 32nd bit to be a 1 */
-  return fnum_rshift32(fnum, shiftdist);
-#else
-  long     value;
-  uint32_t lo32;
-  long     sdist = value_to_shiftdist(shiftdist, 32);
-
-  if (sdist == 0)
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
     return fnum;
-  if (sdist < 0)
-    return fnum_lshift32(fnum, LONG2FIX(-sdist));
-  
-  value = FIX2LONG(fnum);
-  lo32  = value;
-  if ((0x80000000UL & lo32) != 0) {
-    if (sdist < 32)
-      lo32 = (lo32 >> sdist) | ~(0xFFFFFFFFUL >> sdist);
-    else
-      lo32 = 0xFFFFFFFFUL;
-  } else {
-    if (sdist < 32)
-      lo32 = lo32 >> sdist;
-    else
-      lo32 = 0;
-  }
-
-  return LONG2FIX((value & ~0xFFFFFFFFUL) | lo32);
-#endif
+  else
+    return LONG2FIX((value & ~0xFFFFFFFFUL) | arith_rshift32(value, shiftdist));
 }
 
 static VALUE
 bnum_arith_rshift32(VALUE bnum, VALUE shiftdist)
 {
-  uint32_t lo32;
-  long     sdist = value_to_shiftdist(shiftdist, 32);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist < 0)
-    return bnum_lshift32(bnum, LONG2FIX(-sdist));
-  
-  lo32 = *RBIGNUM_DIGITS(bnum);
-  if ((0x80000000UL & lo32) != 0) {
-    if (sdist < 32 && sdist > -32)
-      lo32 = (lo32 >> sdist) | ~(~0UL >> sdist);
-    else
-      lo32 = 0xFFFFFFFFUL;
-  } else {
-    if (sdist < 32 && sdist > -32)
-      lo32 = lo32 >> sdist;
-    else
-      lo32 = 0;
-  }
+  else
+    return modify_lo32_in_bignum(bnum, arith_rshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
+}
 
-  return modify_lo32_in_bignum(bnum, lo32);
+static VALUE
+fnum_arith_rshift64(VALUE fnum, VALUE shiftdist)
+{
+  if (shiftdist == fix_zero)
+    return fnum;
+  else
+    return ULONG2NUM(arith_rshift64(FIX2LONG(fnum), shiftdist));
 }
 
 static VALUE
 bnum_arith_rshift64(VALUE bnum, VALUE shiftdist)
 {
-  uint64_t val;
-  long     sdist = value_to_shiftdist(shiftdist, 64);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist < 0)
-    return bnum_lshift64(bnum, LONG2FIX(-sdist));
-  
-  val = load_64_from_bignum(bnum);
-  if ((0x8000000000000000ULL & val) != 0) {
-    if (sdist < 64 && sdist > -64)
-      val = (val >> sdist) | ~(~0ULL >> sdist);
-    else
-      val = ~0ULL;
-  } else {
-    if (sdist < 64 && sdist > -64)
-      val = val >> sdist;
-    else
-      val = 0;
-  }
-
-  return modify_lo64_in_bignum(bnum, val);
+  else
+    return modify_lo64_in_bignum(bnum, arith_rshift64(load_64_from_bignum(bnum), shiftdist));
 }
 
 static const uint8_t bitreverse_table[] =
