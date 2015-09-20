@@ -1023,6 +1023,13 @@ static inline uint64_t reverse64(uint64_t value)
   return ((uint64_t)reverse32(value) << 32) | reverse32(value >> 32);
 }
 
+/* Reverse the low 8 bits in this integer.
+ *
+ * @example
+ *   0b01101011.bitreverse8.to_s(2) # => "11010110"
+ *
+ * @return [Integer]
+ */
 static VALUE
 fnum_bitreverse8(VALUE fnum)
 {
@@ -1033,10 +1040,16 @@ fnum_bitreverse8(VALUE fnum)
 static VALUE
 bnum_bitreverse8(VALUE bnum)
 {
-  uint8_t lo8 = *RBIGNUM_DIGITS(bnum);
-  return modify_lo8_in_bignum(bnum, reverse8(lo8));
+  return modify_lo8_in_bignum(bnum, reverse8(*RBIGNUM_DIGITS(bnum)));
 }
 
+/* Reverse the low 16 bits in this integer.
+ *
+ * @example
+ *   0b0110101100001011.bitreverse16.to_s(2) # => "1101000011010110"
+ *
+ * @return [Integer]
+ */
 static VALUE
 fnum_bitreverse16(VALUE fnum)
 {
@@ -1047,10 +1060,16 @@ fnum_bitreverse16(VALUE fnum)
 static VALUE
 bnum_bitreverse16(VALUE bnum)
 {
-  uint16_t lo16 = *RBIGNUM_DIGITS(bnum);
-  return modify_lo16_in_bignum(bnum, reverse16(lo16));
+  return modify_lo16_in_bignum(bnum, reverse16(*RBIGNUM_DIGITS(bnum)));
 }
 
+/* Reverse the low 32 bits in this integer.
+ *
+ * @example
+ *   0x12341234.bitreverse32.to_s(16) # => "2c482c48"
+ *
+ * @return [Integer]
+ */
 static VALUE
 fnum_bitreverse32(VALUE fnum)
 {
@@ -1066,16 +1085,21 @@ fnum_bitreverse32(VALUE fnum)
 static VALUE
 bnum_bitreverse32(VALUE bnum)
 {
-  uint32_t lo32 = *RBIGNUM_DIGITS(bnum);
-  return modify_lo32_in_bignum(bnum, reverse32(lo32));
+  return modify_lo32_in_bignum(bnum, reverse32(*RBIGNUM_DIGITS(bnum)));
 }
 
+/* Reverse the low 64 bits in this integer.
+ *
+ * @example
+ *   0xabcd1234abcd1234.bitreverse64.to_s(16) # => "2c48b3d52c48b3d5"
+ *
+ * @return [Integer]
+ */
 static VALUE
 fnum_bitreverse64(VALUE fnum)
 {
   /* on a 32-bit system, do we want sign extension of a negative 32-bit value into 64 bits??? */
-  uint64_t lo64 = FIX2ULONG(fnum);
-  return ULL2NUM(reverse64(lo64));
+  return ULL2NUM(reverse64(FIX2ULONG(fnum)));
 }
 
 static VALUE
@@ -1149,10 +1173,7 @@ void Init_bit_twiddle(void)
 
   rb_define_method(rb_cFixnum, "arith_rshift32",  fnum_arith_rshift32, 1);
   rb_define_method(rb_cBignum, "arith_rshift32",  bnum_arith_rshift32, 1);
-
-  /* Fixnum doesn't have enough precision that the 64th bit could be a 1
-   * (Or if it does, our preprocessor directives above will make sure this won't compile) */
-  rb_define_method(rb_cFixnum, "arith_rshift64",  fnum_rshift64, 1);
+  rb_define_method(rb_cFixnum, "arith_rshift64",  fnum_arith_rshift64, 1);
   rb_define_method(rb_cBignum, "arith_rshift64",  bnum_arith_rshift64, 1);
 
   rb_define_method(rb_cFixnum, "bitreverse8",  fnum_bitreverse8,  0);
