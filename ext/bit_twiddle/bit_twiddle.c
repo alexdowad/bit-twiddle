@@ -365,8 +365,7 @@ fnum_bswap64(VALUE fnum)
 static VALUE
 bnum_bswap64(VALUE bnum)
 {
-  uint64_t value = __builtin_bswap64(load_64_from_bignum(bnum));
-  return modify_lo64_in_bignum(bnum, value);
+  return modify_lo64_in_bignum(bnum, __builtin_bswap64(load_64_from_bignum(bnum)));
 }
 
 #define def_rot_helpers(bits) \
