@@ -581,6 +581,25 @@ bnum_lrot64(VALUE bnum, VALUE rotdist)
   return modify_lo64_in_bignum(bnum, lrot64(load_64_from_bignum(bnum), rotdist));
 }
 
+#define def_shift_helpers(bits) \
+  static uint##bits##_t lshift##bits(uint##bits##_t value, VALUE shiftdist) { \
+    long sdist = value_to_shiftdist(shiftdist, bits); \
+    if (sdist >= bits || sdist <= -bits) return 0; \
+    else if (sdist < 0) return value >> ((uint)-sdist); \
+    else return value << (uint)sdist; \
+  } \
+  static uint##bits##_t rshift##bits(uint##bits##_t value, VALUE shiftdist) { \
+    long sdist = value_to_shiftdist(shiftdist, bits); \
+    if (sdist >= bits || sdist <= -bits) return 0; \
+    else if (sdist < 0) return value << ((uint)-sdist); \
+    else return value >> (uint)sdist; \
+  }
+
+def_shift_helpers(8);
+def_shift_helpers(16);
+def_shift_helpers(32);
+def_shift_helpers(64);
+
 /* Left-shift of the low 8 bits in this integer.
  *
  * If the shift distance is negative, a right shift will be performed instead.
@@ -597,36 +616,20 @@ bnum_lrot64(VALUE bnum, VALUE rotdist)
 static VALUE
 fnum_lshift8(VALUE fnum, VALUE shiftdist)
 {
-  long    value = FIX2LONG(fnum);
-  long    sdist = value_to_shiftdist(shiftdist, 8);
-  uint8_t lo8   = value;
-
-  if (sdist == 0)
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
     return fnum;
-  else if (sdist >= 8 || sdist <= -8)
-    return LONG2FIX(value & ~0xFFL);
-  else if (sdist < 0)
-    return LONG2FIX((value & ~0xFFL) | (lo8 >> ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFL) | (uint8_t)(lo8 << ((ulong)sdist)));
+    return LONG2FIX((value & ~0xFFL) | lshift8(value, shiftdist));
 }
 
 static VALUE
 bnum_lshift8(VALUE bnum, VALUE shiftdist)
 {
-  uint8_t lo8   = *RBIGNUM_DIGITS(bnum);
-  long    sdist = value_to_shiftdist(shiftdist, 8);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist >= 8 || sdist <= -8)
-    lo8 = 0;
-  else if (sdist < 0)
-    lo8 = lo8 >> ((ulong)-sdist);
   else
-    lo8 = lo8 << ((ulong)sdist);
-
-  return modify_lo8_in_bignum(bnum, lo8);
+    return modify_lo8_in_bignum(bnum, lshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Left-shift of the low 16 bits in this integer.
@@ -645,36 +648,20 @@ bnum_lshift8(VALUE bnum, VALUE shiftdist)
 static VALUE
 fnum_lshift16(VALUE fnum, VALUE shiftdist)
 {
-  long    value = FIX2LONG(fnum);
-  long    sdist = value_to_shiftdist(shiftdist, 16);
-  uint16_t lo16 = value;
-
-  if (sdist == 0)
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
     return fnum;
-  else if (sdist >= 16 || sdist <= -16)
-    return LONG2FIX(value & ~0xFFFFL);
-  else if (sdist < 0)
-    return LONG2FIX((value & ~0xFFFFL) | (lo16 >> ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFFFL) | (uint16_t)(lo16 << ((ulong)sdist)));
+    return LONG2FIX((value & ~0xFFFFL) | lshift16(value, shiftdist));
 }
 
 static VALUE
 bnum_lshift16(VALUE bnum, VALUE shiftdist)
 {
-  uint16_t lo16  = *RBIGNUM_DIGITS(bnum);
-  long     sdist = value_to_shiftdist(shiftdist, 16);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist >= 16 || sdist <= -16)
-    lo16 = 0;
-  else if (sdist < 0)
-    lo16 = lo16 >> ((ulong)-sdist);
   else
-    lo16 = lo16 << ((ulong)sdist);
-
-  return modify_lo16_in_bignum(bnum, lo16);
+    return modify_lo16_in_bignum(bnum, lshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Left-shift of the low 32 bits in this integer.
@@ -693,36 +680,20 @@ bnum_lshift16(VALUE bnum, VALUE shiftdist)
 static VALUE
 fnum_lshift32(VALUE fnum, VALUE shiftdist)
 {
-  long     value = FIX2LONG(fnum);
-  long     sdist = value_to_shiftdist(shiftdist, 32);
-  uint32_t lo32  = value;
-
-  if (sdist == 0)
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
     return fnum;
-  else if (sdist >= 32 || sdist <= -32)
-    return LONG2FIX(value & ~0xFFFFFFFFL);
-  else if (sdist < 0)
-    return LONG2FIX((value & ~0xFFFFFFFFL) | (lo32 >> ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFFFFFFFL) | (uint32_t)(lo32 << ((ulong)sdist)));
+    return LONG2FIX((value & ~0xFFFFFFFFL) | lshift32(value, shiftdist));
 }
 
 static VALUE
 bnum_lshift32(VALUE bnum, VALUE shiftdist)
 {
-  uint32_t lo32  = *RBIGNUM_DIGITS(bnum);
-  long     sdist = value_to_shiftdist(shiftdist, 32);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist >= 32 || sdist <= -32)
-    lo32 = 0;
-  else if (sdist < 0)
-    lo32 = lo32 >> ((ulong)-sdist);
   else
-    lo32 = lo32 << ((ulong)sdist);
-
-  return modify_lo32_in_bignum(bnum, lo32);
+    return modify_lo32_in_bignum(bnum, lshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Left-shift of the low 64 bits in this integer.
@@ -756,19 +727,10 @@ fnum_lshift64(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_lshift64(VALUE bnum, VALUE shiftdist)
 {
-  uint64_t val;
-  long     sdist = value_to_shiftdist(shiftdist, 64);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist >= 64 || sdist <= -64)
-    val = 0ULL;
-  else if (sdist < 0)
-    val = load_64_from_bignum(bnum) >> ((ulong)-sdist);
   else
-    val = load_64_from_bignum(bnum) << ((ulong)sdist);
-
-  return modify_lo64_in_bignum(bnum, val);
+    return modify_lo64_in_bignum(bnum, lshift64(load_64_from_bignum(bnum), shiftdist));
 }
 
 /* Right-shift of the low 8 bits in this integer.
@@ -787,36 +749,20 @@ bnum_lshift64(VALUE bnum, VALUE shiftdist)
 static VALUE
 fnum_rshift8(VALUE fnum, VALUE shiftdist)
 {
-  long    value = FIX2LONG(fnum);
-  long    sdist = value_to_shiftdist(shiftdist, 8);
-  uint8_t lo8   = value;
-
-  if (sdist == 0)
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
     return fnum;
-  else if (sdist >= 8 || sdist <= -8)
-    return LONG2FIX(value & ~0xFFL);
-  else if (sdist < 0)
-    return LONG2FIX((value & ~0xFFL) | (uint8_t)(lo8 << ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFL) | (lo8 >> ((ulong)sdist)));
+    return LONG2FIX((value & ~0xFFL) | rshift8(value, shiftdist));
 }
 
 static VALUE
 bnum_rshift8(VALUE bnum, VALUE shiftdist)
 {
-  uint8_t lo8   = *RBIGNUM_DIGITS(bnum);
-  long    sdist = value_to_shiftdist(shiftdist, 8);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist >= 8 || sdist <= -8)
-    lo8 = 0;
-  else if (sdist < 0)
-    lo8 = lo8 << ((ulong)-sdist);
   else
-    lo8 = lo8 >> ((ulong)sdist);
-
-  return modify_lo8_in_bignum(bnum, lo8);
+    return modify_lo8_in_bignum(bnum, rshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Right-shift of the low 16 bits in this integer.
@@ -835,36 +781,20 @@ bnum_rshift8(VALUE bnum, VALUE shiftdist)
 static VALUE
 fnum_rshift16(VALUE fnum, VALUE shiftdist)
 {
-  long    value = FIX2LONG(fnum);
-  long    sdist = value_to_shiftdist(shiftdist, 16);
-  uint16_t lo16 = value;
-
-  if (sdist == 0)
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
     return fnum;
-  else if (sdist >= 16 || sdist <= -16)
-    return LONG2FIX(value & ~0xFFFFL);
-  else if (sdist < 0)
-    return LONG2FIX((value & ~0xFFFFL) | (uint16_t)(lo16 << ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFFFL) | (lo16 >> ((ulong)sdist)));
+    return LONG2FIX((value & ~0xFFFFL) | rshift16(value, shiftdist));
 }
 
 static VALUE
 bnum_rshift16(VALUE bnum, VALUE shiftdist)
 {
-  uint16_t lo16  = *RBIGNUM_DIGITS(bnum);
-  long     sdist = value_to_shiftdist(shiftdist, 16);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist >= 16 || sdist <= -16)
-    lo16 = 0;
-  else if (sdist < 0)
-    lo16 = lo16 << ((ulong)-sdist);
   else
-    lo16 = lo16 >> ((ulong)sdist);
-
-  return modify_lo16_in_bignum(bnum, lo16);
+    return modify_lo16_in_bignum(bnum, rshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Right-shift of the low 32 bits in this integer.
@@ -883,36 +813,20 @@ bnum_rshift16(VALUE bnum, VALUE shiftdist)
 static VALUE
 fnum_rshift32(VALUE fnum, VALUE shiftdist)
 {
-  long    value = FIX2LONG(fnum);
-  uint32_t lo32 = value;
-  long    sdist = value_to_shiftdist(shiftdist, 32);
-
-  if (sdist == 0)
+  long value = FIX2LONG(fnum);
+  if (shiftdist == fix_zero)
     return fnum;
-  else if (sdist >= 32 || sdist <= -32)
-    return LONG2FIX(value & ~0xFFFFFFFFUL);
-  else if (sdist < 0)
-    return LONG2FIX((value & ~0xFFFFFFFFUL) | (uint32_t)(lo32 << ((ulong)-sdist)));
   else
-    return LONG2FIX((value & ~0xFFFFFFFFUL) | (lo32 >> ((ulong)sdist)));
+    return LONG2FIX((value & ~0xFFFFFFFFL) | rshift32(value, shiftdist));
 }
 
 static VALUE
 bnum_rshift32(VALUE bnum, VALUE shiftdist)
 {
-  uint32_t lo32;
-  long     sdist = value_to_shiftdist(shiftdist, 32);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist >= 32 || sdist <= -32)
-    lo32 = 0;
-  else if (sdist < 0)
-    lo32 = *RBIGNUM_DIGITS(bnum) << ((ulong)-sdist);
   else
-    lo32 = *RBIGNUM_DIGITS(bnum) >> ((ulong)sdist);
-
-  return modify_lo32_in_bignum(bnum, lo32);
+    return modify_lo32_in_bignum(bnum, rshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Right-shift of the low 64 bits in this integer.
@@ -946,19 +860,10 @@ fnum_rshift64(VALUE fnum, VALUE shiftdist)
 static VALUE
 bnum_rshift64(VALUE bnum, VALUE shiftdist)
 {
-  uint64_t val;
-  long     sdist = value_to_shiftdist(shiftdist, 64);
-
-  if (sdist == 0)
+  if (shiftdist == fix_zero)
     return bnum;
-  else if (sdist >= 64 || sdist <= -64)
-    val = 0ULL;
-  else if (sdist < 0)
-    val = load_64_from_bignum(bnum) << ((ulong)-sdist);
   else
-    val = load_64_from_bignum(bnum) >> ((ulong)sdist);
-
-  return modify_lo64_in_bignum(bnum, val);
+    return modify_lo64_in_bignum(bnum, rshift64(load_64_from_bignum(bnum), shiftdist));
 }
 
 static VALUE
