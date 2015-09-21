@@ -164,7 +164,7 @@ modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
 #if SIZEOF_LONG == 4
   /* if a 'long' is only 4 bytes, a 32-bit number could be promoted to Bignum
    * then modifying the low 32 bits could make it fixable again */
-  if (RBIGNUM_LEN() == 1 && FIXABLE(value))
+  if (RBIGNUM_LEN(bnum) == 1 && FIXABLE(value))
     return LONG2FIX(value);
 #endif
 
