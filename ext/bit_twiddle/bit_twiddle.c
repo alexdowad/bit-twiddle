@@ -1278,4 +1278,80 @@ void Init_bit_twiddle(void)
   rb_define_singleton_method(rb_mBitTwiddle, "bitreverse16", bt_bitreverse16, 1);
   rb_define_singleton_method(rb_mBitTwiddle, "bitreverse32", bt_bitreverse32, 1);
   rb_define_singleton_method(rb_mBitTwiddle, "bitreverse64", bt_bitreverse64, 1);
+
+#if 0
+  /* The following definitions are executed only on BitTwiddle.add_core_extensions
+   * This is a hack for Yardoc -- so Yardoc can find them: */
+
+   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
+   rb_define_method(rb_cBignum, "popcount", bnum_popcount, 0);
+   rb_define_method(rb_cString, "popcount", str_popcount,  0);
+
+   rb_define_method(rb_cFixnum, "lo_bit",   fnum_lo_bit, 0);
+   rb_define_method(rb_cBignum, "lo_bit",   bnum_lo_bit, 0);
+   rb_define_method(rb_cFixnum, "hi_bit",   fnum_hi_bit, 0);
+   rb_define_method(rb_cBignum, "hi_bit",   bnum_hi_bit, 0);
+
+   rb_define_method(rb_cFixnum, "bswap16",  fnum_bswap16, 0);
+   rb_define_method(rb_cBignum, "bswap16",  bnum_bswap16, 0);
+   rb_define_method(rb_cFixnum, "bswap32",  fnum_bswap32, 0);
+   rb_define_method(rb_cBignum, "bswap32",  bnum_bswap32, 0);
+   rb_define_method(rb_cFixnum, "bswap64",  fnum_bswap64, 0);
+   rb_define_method(rb_cBignum, "bswap64",  bnum_bswap64, 0);
+
+   rb_define_method(rb_cFixnum, "rrot8",    fnum_rrot8,  1);
+   rb_define_method(rb_cBignum, "rrot8",    bnum_rrot8,  1);
+   rb_define_method(rb_cFixnum, "rrot16",   fnum_rrot16, 1);
+   rb_define_method(rb_cBignum, "rrot16",   bnum_rrot16, 1);
+   rb_define_method(rb_cFixnum, "rrot32",   fnum_rrot32, 1);
+   rb_define_method(rb_cBignum, "rrot32",   bnum_rrot32, 1);
+   rb_define_method(rb_cFixnum, "rrot64",   fnum_rrot64, 1);
+   rb_define_method(rb_cBignum, "rrot64",   bnum_rrot64, 1);
+
+   rb_define_method(rb_cFixnum, "lrot8",    fnum_lrot8,  1);
+   rb_define_method(rb_cBignum, "lrot8",    bnum_lrot8,  1);
+   rb_define_method(rb_cFixnum, "lrot16",   fnum_lrot16, 1);
+   rb_define_method(rb_cBignum, "lrot16",   bnum_lrot16, 1);
+   rb_define_method(rb_cFixnum, "lrot32",   fnum_lrot32, 1);
+   rb_define_method(rb_cBignum, "lrot32",   bnum_lrot32, 1);
+   rb_define_method(rb_cFixnum, "lrot64",   fnum_lrot64, 1);
+   rb_define_method(rb_cBignum, "lrot64",   bnum_lrot64, 1);
+
+   rb_define_method(rb_cFixnum, "lshift8",   fnum_lshift8,  1);
+   rb_define_method(rb_cBignum, "lshift8",   bnum_lshift8,  1);
+   rb_define_method(rb_cFixnum, "lshift16",  fnum_lshift16, 1);
+   rb_define_method(rb_cBignum, "lshift16",  bnum_lshift16, 1);
+   rb_define_method(rb_cFixnum, "lshift32",  fnum_lshift32, 1);
+   rb_define_method(rb_cBignum, "lshift32",  bnum_lshift32, 1);
+   rb_define_method(rb_cFixnum, "lshift64",  fnum_lshift64, 1);
+   rb_define_method(rb_cBignum, "lshift64",  bnum_lshift64, 1);
+
+   rb_define_method(rb_cFixnum, "rshift8",   fnum_rshift8,  1);
+   rb_define_method(rb_cBignum, "rshift8",   bnum_rshift8,  1);
+   rb_define_method(rb_cFixnum, "rshift16",  fnum_rshift16, 1);
+   rb_define_method(rb_cBignum, "rshift16",  bnum_rshift16, 1);
+   rb_define_method(rb_cFixnum, "rshift32",  fnum_rshift32, 1);
+   rb_define_method(rb_cBignum, "rshift32",  bnum_rshift32, 1);
+   rb_define_method(rb_cFixnum, "rshift64",  fnum_rshift64, 1);
+   rb_define_method(rb_cBignum, "rshift64",  bnum_rshift64, 1);
+
+   rb_define_method(rb_cFixnum, "arith_rshift8",  fnum_arith_rshift8,  1);
+   rb_define_method(rb_cBignum, "arith_rshift8",  bnum_arith_rshift8,  1);
+   rb_define_method(rb_cFixnum, "arith_rshift16", fnum_arith_rshift16, 1);
+   rb_define_method(rb_cBignum, "arith_rshift16", bnum_arith_rshift16, 1);
+   rb_define_method(rb_cFixnum, "arith_rshift32", fnum_arith_rshift32, 1);
+   rb_define_method(rb_cBignum, "arith_rshift32", bnum_arith_rshift32, 1);
+   rb_define_method(rb_cFixnum, "arith_rshift64", fnum_arith_rshift64, 1);
+   rb_define_method(rb_cBignum, "arith_rshift64", bnum_arith_rshift64, 1);
+
+   rb_define_method(rb_cFixnum, "bitreverse8",  fnum_bitreverse8,  0);
+   rb_define_method(rb_cBignum, "bitreverse8",  bnum_bitreverse8,  0);
+   rb_define_method(rb_cFixnum, "bitreverse16", fnum_bitreverse16, 0);
+   rb_define_method(rb_cBignum, "bitreverse16", bnum_bitreverse16, 0);
+   rb_define_method(rb_cFixnum, "bitreverse32", fnum_bitreverse32, 0);
+   rb_define_method(rb_cBignum, "bitreverse32", bnum_bitreverse32, 0);
+   rb_define_method(rb_cFixnum, "bitreverse64", fnum_bitreverse64, 0);
+   rb_define_method(rb_cBignum, "bitreverse64", bnum_bitreverse64, 0);
+#endif
+
 }
