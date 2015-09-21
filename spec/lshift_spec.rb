@@ -4,18 +4,22 @@
 
     it "shifts bits in a #{bits}-bit number to the left (but cuts off high bits)" do
       100.times do
-        num = rand(1 << bits)
+        num  = rand(1 << bits)
+        bnum = rand(1 << 100)
         1.upto(bits+10) do |sdist|
-          expect(num.send(method, sdist)).to eq ((num << sdist) & bitmask)
+          expect(num.send(method, sdist)).to  eq ((num << sdist) & bitmask)
+          expect(bnum.send(method, sdist)).to eq (((bnum & bitmask) << sdist) & bitmask) | (bnum & ~bitmask)
         end
       end
     end
 
     it "does a right shift if shift distance is negative" do
       100.times do
-        num = rand(1 << bits)
+        num  = rand(1 << bits)
+        bnum = rand(1 << 100)
         1.upto(bits+10) do |sdist|
           expect(num.send(method, -sdist)).to eq (num >> sdist)
+          expect(bnum.send(method, -sdist)).to eq ((bnum & bitmask) >> sdist) | (bnum & ~bitmask)
         end
       end
     end
