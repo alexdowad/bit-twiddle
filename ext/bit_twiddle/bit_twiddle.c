@@ -1168,30 +1168,30 @@ bt_add_core_extensions(VALUE self)
   rb_define_method(rb_cFixnum, "hi_bit",   fnum_hi_bit, 0);
   rb_define_method(rb_cBignum, "hi_bit",   bnum_hi_bit, 0);
 
-  rb_define_method(rb_cFixnum, "bswap16", fnum_bswap16, 0);
-  rb_define_method(rb_cBignum, "bswap16", bnum_bswap16, 0);
-  rb_define_method(rb_cFixnum, "bswap32", fnum_bswap32, 0);
-  rb_define_method(rb_cBignum, "bswap32", bnum_bswap32, 0);
-  rb_define_method(rb_cFixnum, "bswap64", fnum_bswap64, 0);
-  rb_define_method(rb_cBignum, "bswap64", bnum_bswap64, 0);
+  rb_define_method(rb_cFixnum, "bswap16",  fnum_bswap16, 0);
+  rb_define_method(rb_cBignum, "bswap16",  bnum_bswap16, 0);
+  rb_define_method(rb_cFixnum, "bswap32",  fnum_bswap32, 0);
+  rb_define_method(rb_cBignum, "bswap32",  bnum_bswap32, 0);
+  rb_define_method(rb_cFixnum, "bswap64",  fnum_bswap64, 0);
+  rb_define_method(rb_cBignum, "bswap64",  bnum_bswap64, 0);
 
-  rb_define_method(rb_cFixnum, "rrot8",  fnum_rrot8,  1);
-  rb_define_method(rb_cBignum, "rrot8",  bnum_rrot8,  1);
-  rb_define_method(rb_cFixnum, "rrot16", fnum_rrot16, 1);
-  rb_define_method(rb_cBignum, "rrot16", bnum_rrot16, 1);
-  rb_define_method(rb_cFixnum, "rrot32", fnum_rrot32, 1);
-  rb_define_method(rb_cBignum, "rrot32", bnum_rrot32, 1);
-  rb_define_method(rb_cFixnum, "rrot64", fnum_rrot64, 1);
-  rb_define_method(rb_cBignum, "rrot64", bnum_rrot64, 1);
+  rb_define_method(rb_cFixnum, "rrot8",    fnum_rrot8,  1);
+  rb_define_method(rb_cBignum, "rrot8",    bnum_rrot8,  1);
+  rb_define_method(rb_cFixnum, "rrot16",   fnum_rrot16, 1);
+  rb_define_method(rb_cBignum, "rrot16",   bnum_rrot16, 1);
+  rb_define_method(rb_cFixnum, "rrot32",   fnum_rrot32, 1);
+  rb_define_method(rb_cBignum, "rrot32",   bnum_rrot32, 1);
+  rb_define_method(rb_cFixnum, "rrot64",   fnum_rrot64, 1);
+  rb_define_method(rb_cBignum, "rrot64",   bnum_rrot64, 1);
 
-  rb_define_method(rb_cFixnum, "lrot8",  fnum_lrot8,  1);
-  rb_define_method(rb_cBignum, "lrot8",  bnum_lrot8,  1);
-  rb_define_method(rb_cFixnum, "lrot16", fnum_lrot16, 1);
-  rb_define_method(rb_cBignum, "lrot16", bnum_lrot16, 1);
-  rb_define_method(rb_cFixnum, "lrot32", fnum_lrot32, 1);
-  rb_define_method(rb_cBignum, "lrot32", bnum_lrot32, 1);
-  rb_define_method(rb_cFixnum, "lrot64", fnum_lrot64, 1);
-  rb_define_method(rb_cBignum, "lrot64", bnum_lrot64, 1);
+  rb_define_method(rb_cFixnum, "lrot8",    fnum_lrot8,  1);
+  rb_define_method(rb_cBignum, "lrot8",    bnum_lrot8,  1);
+  rb_define_method(rb_cFixnum, "lrot16",   fnum_lrot16, 1);
+  rb_define_method(rb_cBignum, "lrot16",   bnum_lrot16, 1);
+  rb_define_method(rb_cFixnum, "lrot32",   fnum_lrot32, 1);
+  rb_define_method(rb_cBignum, "lrot32",   bnum_lrot32, 1);
+  rb_define_method(rb_cFixnum, "lrot64",   fnum_lrot64, 1);
+  rb_define_method(rb_cBignum, "lrot64",   bnum_lrot64, 1);
 
   rb_define_method(rb_cFixnum, "lshift8",   fnum_lshift8,  1);
   rb_define_method(rb_cBignum, "lshift8",   bnum_lshift8,  1);
