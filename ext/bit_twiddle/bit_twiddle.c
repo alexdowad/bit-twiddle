@@ -942,6 +942,21 @@ bnum_rshift64(VALUE bnum, VALUE shiftdist)
     return modify_lo64_in_bignum(bnum, rshift64(load_64_from_bignum(bnum), shiftdist));
 }
 
+/* Document-method: Fixnum#arith_rshift8
+ * Document-method: Bignum#arith_rshift8
+ * Arithmetic right-shift of the low 8 bits in this integer.
+ *
+ * If bit 8 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+ * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+ * will be performed instead, and the vacated bit positions will be filled with 0s.
+ *
+ * @example
+ *   0xaabbccdd.arith_rshift8(1).to_s(16) # => "aabbccee"
+ *   0xaabbccdd.arith_rshift8(2).to_s(16) # => "aabbccf7"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
 static VALUE
 fnum_arith_rshift8(VALUE fnum, VALUE shiftdist)
 {
@@ -961,6 +976,21 @@ bnum_arith_rshift8(VALUE bnum, VALUE shiftdist)
     return modify_lo8_in_bignum(bnum, arith_rshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
+/* Document-method: Fixnum#arith_rshift16
+ * Document-method: Bignum#arith_rshift16
+ * Arithmetic right-shift of the low 16 bits in this integer.
+ *
+ * If bit 16 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+ * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+ * will be performed instead, and the vacated bit positions will be filled with 0s.
+ *
+ * @example
+ *   0xaabbccdd.arith_rshift16(1).to_s(16) # => "aabbe66e"
+ *   0xaabbccdd.arith_rshift16(2).to_s(16) # => "aabbf337"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
 static VALUE
 fnum_arith_rshift16(VALUE fnum, VALUE shiftdist)
 {
@@ -980,6 +1010,21 @@ bnum_arith_rshift16(VALUE bnum, VALUE shiftdist)
     return modify_lo16_in_bignum(bnum, arith_rshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
+/* Document-method: Fixnum#arith_rshift32
+ * Document-method: Bignum#arith_rshift32
+ * Arithmetic right-shift of the low 32 bits in this integer.
+ *
+ * If bit 32 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+ * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+ * will be performed instead, and the vacated bit positions will be filled with 0s.
+ *
+ * @example
+ *   0xaabbccddaabbccdd.arith_rshift32(1).to_s(16) # => "d55de66e"
+ *   0xaabbccddaabbccdd.arith_rshift32(2).to_s(16) # => "eaaef337"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
 static VALUE
 fnum_arith_rshift32(VALUE fnum, VALUE shiftdist)
 {
@@ -999,6 +1044,21 @@ bnum_arith_rshift32(VALUE bnum, VALUE shiftdist)
     return modify_lo32_in_bignum(bnum, arith_rshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
+/* Document-method: Fixnum#arith_rshift64
+ * Document-method: Bignum#arith_rshift64
+ * Arithmetic right-shift of the low 64 bits in this integer.
+ *
+ * If bit 64 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+ * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+ * will be performed instead, and the vacated bit positions will be filled with 0s.
+ *
+ * @example
+ *   0xaabbccddaabbccdd.arith_rshift64(1).to_s(16) # => "d55de66ed55de66e"
+ *   0xaabbccddaabbccdd.arith_rshift64(2).to_s(16) # => "eaaef3376aaef337"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
 static VALUE
 fnum_arith_rshift64(VALUE fnum, VALUE shiftdist)
 {
