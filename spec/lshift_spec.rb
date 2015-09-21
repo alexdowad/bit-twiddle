@@ -1,207 +1,58 @@
-describe "#lshift8" do
-  it "shifts bits in a 8-bit number to the left (but cuts off high bits)" do
-    100.times do
-      num = rand(1 << 8)
-      1.upto(20) do |sdist|
-        expect(num.lshift8(sdist)).to eq ((num << sdist) & MASK_8)
+[[:lshift8, 8], [:lshift16, 16], [:lshift32, 32], [:lshift64, 64]].each do |method, bits|
+  describe "##{method}" do
+    bitmask = (1 << bits) - 1
+
+    it "shifts bits in a #{bits}-bit number to the left (but cuts off high bits)" do
+      100.times do
+        num = rand(1 << bits)
+        1.upto(bits+10) do |sdist|
+          expect(num.send(method, sdist)).to eq ((num << sdist) & bitmask)
+        end
       end
     end
-  end
 
-  it "does a right shift if shift distance is negative" do
-    100.times do
-      num = rand(1 << 8)
-      1.upto(20) do |sdist|
-        expect(num.lshift8(-sdist)).to eq (num >> sdist)
+    it "does a right shift if shift distance is negative" do
+      100.times do
+        num = rand(1 << bits)
+        1.upto(bits+10) do |sdist|
+          expect(num.send(method, -sdist)).to eq (num >> sdist)
+        end
       end
     end
-  end
 
-  it "returns the receiver if shift distance is zero" do
-    100.times do
-      num = rand(1 << 32)
-      expect(num.lshift8(0)).to eq num
-    end
-  end
-
-  it "fills in the low end with zeros" do
-    100.times do
-      num = rand(1 << 32)
-      1.upto(20) do |sdist|
-        mask = sdist <= 8 ? (1 << sdist) - 1 : MASK_8
-        expect(num.lshift8(sdist) & mask).to eq 0
+    it "returns the receiver if shift distance is zero" do
+      100.times do
+        num = rand(1 << 32)
+        expect(num.send(method, 0)).to eq num
       end
     end
-  end
 
-  it "doesn't modify bits above the 32nd" do
-    100.times do
-      num = rand(1 << 64)
-      -64.upto(64) do |sdist|
-        expect(num.lshift8(sdist) & ~MASK_8).to eq (num & ~MASK_8)
+    it "fills in the low end with zeros" do
+      100.times do
+        num  = rand(1 << 32)
+        bnum = rand(1 << 90)
+        1.upto(bits+10) do |sdist|
+          mask = sdist <= bits ? (1 << sdist) - 1 : bitmask
+          expect(num.send(method, sdist) & mask).to  eq 0
+          expect(bnum.send(method, sdist) & mask).to eq 0
+        end
       end
     end
-  end
 
-  it "zeroes out low 32 bits when shift distance is a Bignum" do
-    expect(100.lshift8(1 << 100)).to eq 0
-    expect((1 << 100).lshift8(1 << 100)).to eq (1 << 100)
-  end
-end
-
-describe "#lshift16" do
-  it "shifts bits in a 16-bit number to the left (but cuts off high bits)" do
-    100.times do
-      num = rand(1 << 16)
-      1.upto(20) do |sdist|
-        expect(num.lshift16(sdist)).to eq ((num << sdist) & MASK_16)
+    it "doesn't modify bits above number #{bits}" do
+      100.times do
+        num = rand(1 << 32)
+        bnum = rand(1 << 90)
+        -64.upto(64) do |sdist|
+          expect(num.send(method, sdist) & ~bitmask).to  eq (num  & ~bitmask)
+          expect(bnum.send(method, sdist) & ~bitmask).to eq (bnum & ~bitmask)
+        end
       end
     end
-  end
 
-  it "does a right shift if shift distance is negative" do
-    100.times do
-      num = rand(1 << 16)
-      1.upto(20) do |sdist|
-        expect(num.lshift16(-sdist)).to eq (num >> sdist)
-      end
+    it "zeroes out low #{bits} bits when shift distance is a Bignum" do
+      expect(100.send(method, 1 << 100)).to eq 0
+      expect((1 << 100).send(method, 1 << 100)).to eq (1 << 100)
     end
-  end
-
-  it "returns the receiver if shift distance is zero" do
-    100.times do
-      num = rand(1 << 32)
-      expect(num.lshift16(0)).to eq num
-    end
-  end
-
-  it "fills in the low end with zeros" do
-    100.times do
-      num = rand(1 << 32)
-      1.upto(20) do |sdist|
-        mask = sdist <= 16 ? (1 << sdist) - 1 : MASK_16
-        expect(num.lshift16(sdist) & mask).to eq 0
-      end
-    end
-  end
-
-  it "doesn't modify bits above the 32nd" do
-    100.times do
-      num = rand(1 << 64)
-      -64.upto(64) do |sdist|
-        expect(num.lshift16(sdist) & ~MASK_16).to eq (num & ~MASK_16)
-      end
-    end
-  end
-
-  it "zeroes out low 32 bits when shift distance is a Bignum" do
-    expect(100.lshift16(1 << 100)).to eq 0
-    expect((1 << 100).lshift16(1 << 100)).to eq (1 << 100)
-  end
-end
-
-describe "#lshift32" do
-  it "shifts bits in a 32-bit number to the left (but cuts off high bits)" do
-    100.times do
-      num = rand(1 << 32)
-      1.upto(40) do |sdist|
-        expect(num.lshift32(sdist)).to eq ((num << sdist) & MASK_32)
-      end
-    end
-  end
-
-  it "does a right shift if shift distance is negative" do
-    100.times do
-      num = rand(1 << 32)
-      1.upto(40) do |sdist|
-        expect(num.lshift32(-sdist)).to eq (num >> sdist)
-      end
-    end
-  end
-
-  it "returns the receiver if shift distance is zero" do
-    100.times do
-      num = rand(1 << 32)
-      expect(num.lshift32(0)).to eq num
-    end
-  end
-
-  it "fills in the low end with zeros" do
-    100.times do
-      num = rand(1 << 32)
-      1.upto(40) do |sdist|
-        mask = sdist <= 32 ? (1 << sdist) - 1 : MASK_32
-        expect(num.lshift32(sdist) & mask).to eq 0
-      end
-    end
-  end
-
-  it "doesn't modify bits above the 32nd" do
-    100.times do
-      num = rand(1 << 64)
-      0.upto(64) do |sdist|
-        expect(num.lshift32(sdist) & MASK_32).to eq ((num << sdist) & MASK_32)
-        expect(num.lshift32(sdist) & ~MASK_32).to eq (num & ~MASK_32)
-      end
-    end
-  end
-
-  it "zeroes out low 32 bits when shift distance is a Bignum" do
-    expect(100.lshift32(1 << 100)).to eq 0
-    expect((1 << 100).lshift32(1 << 100)).to eq (1 << 100)
-    (expect ((1 << 100)+(1 << 31)+1).lshift32(1 << 80)).to eq (1 << 100)
-  end
-end
-
-describe "#lshift64" do
-  it "shifts bits in a 64-bit number to the left (but cuts off high bits)" do
-    100.times do
-      num = rand(1 << 64)
-      1.upto(80) do |sdist|
-        expect(num.lshift64(sdist)).to eq ((num << sdist) & MASK_64)
-      end
-    end
-  end
-
-  it "does a right shift if shift distance is negative" do
-    100.times do
-      num = rand(1 << 64)
-      1.upto(80) do |sdist|
-        expect(num.lshift64(-sdist)).to eq (num >> sdist)
-      end
-    end
-  end
-
-  it "returns the receiver if shift distance is zero" do
-    100.times do
-      num = rand(1 << 64)
-      expect(num.lshift64(0)).to eq num
-    end
-  end
-
-  it "fills in the low end with zeros" do
-    100.times do
-      num = rand(1 << 64)
-      1.upto(80) do |sdist|
-        mask = sdist <= 64 ? (1 << sdist) - 1 : MASK_64
-        expect(num.lshift64(sdist) & mask).to eq 0
-      end
-    end
-  end
-
-  it "doesn't modify bits above the 64th" do
-    100.times do
-      num = rand(1 << 100)
-      0.upto(80) do |sdist|
-        expect(num.lshift64(sdist) & MASK_64).to eq ((num << sdist) & MASK_64)
-        expect(num.lshift64(sdist) & ~MASK_64).to eq (num & ~MASK_64)
-      end
-    end
-  end
-
-  it "zeroes out low 64 bits when shift distance is a Bignum" do
-    expect(100.lshift64(1 << 100)).to eq 0
-    expect((1 << 100).lshift64(1 << 100)).to eq (1 << 100)
-    (expect ((1 << 100)+(1 << 63)+1).lshift64(1 << 80)).to eq (1 << 100)
   end
 end
