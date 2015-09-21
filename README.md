@@ -1,15 +1,23 @@
 #Fast bitwise operations for Ruby
 
-Ruby has built-in implementations of the "workhorses" of bit manipulation: bitwise AND, OR, NOT, and XOR operations and bit shifts. This library adds more bitwise operations, which may be useful in implementing some algorithms. All the added operations are implemented in optimized C code (so this is MRI-only). All operations on integers are implemented on both `Fixnum` and `Bignum`. Install this goodness with:
+Ruby has built-in implementations of the "workhorses" of bit manipulation: bitwise AND, OR, NOT, and XOR operations and bit shifts. This library adds more bitwise operations, which may be useful in implementing some algorithms. All the added operations are implemented in optimized C code (so this is MRI-only). All operations on integers are implemented for both `Fixnum`s and `Bignum`s.
+
+Install this goodness with:
 
 ```ruby
 gem install bit-twiddle
 ```
 
-And load it with:
+If you want all operations to be namespaced under the `BitTwiddle` module, load it with:
 
 ```ruby
 require "bit-twiddle"
+```
+
+Or for all operations to be defined as instance methods on `Fixnum` and `Bignum`:
+
+```ruby
+require "bit-twiddle/core_ext"
 ```
 
 Ruby does not use a fixed bit width for integers. Rather, the number of bits used for a `Fixnum` is the size of a `long` in the underlying C implementation. The bit width of a `Bignum` varies with its magnitude (typically it's a multiple of 32 bits). This raises the question of what operations which are dependent on bit width, like reversing bits in an integer, should do. Should they return results which vary depending on the bit width used by the underlying, platform-dependent integer representation? That would cause all kinds of headaches.
