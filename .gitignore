@@ -5,3 +5,5 @@ tmp
 doc
 *.sublime-project
 *.sublime-workspace
+.yardoc
+Gemfile.lock
