@@ -1216,6 +1216,7 @@ bnum_bitreverse64(VALUE bnum)
   return modify_lo64_in_bignum(bnum, reverse64(load_64_from_bignum(bnum)));
 }
 
+/* Add all `bit-twiddle` methods directly to `Fixnum` and `Bignum`. */
 static VALUE
 bt_add_core_extensions(VALUE self)
 {
@@ -1360,35 +1361,387 @@ void Init_bit_twiddle(void)
 
   rb_define_singleton_method(rb_mBitTwiddle, "add_core_extensions", bt_add_core_extensions, 0);
 
+  /* Return the number of 1 bits in `int`.
+   * @example
+   *   BitTwiddle.popcount(7)   # => 3
+   *   BitTwiddle.popcount(255) # => 8
+   * @param int [Integer] The integer to operate on
+   * @return [Fixnum]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "popcount", bt_popcount, 1);
+  /* Return the index of the lowest 1 bit, where the least-significant bit is index 1.
+   * If this integer is 0, return 0.
+   * @example
+   *   BitTwiddle.lo_bit(1)   # => 1
+   *   BitTwiddle.lo_bit(128) # => 8
+   * @param int [Integer] The integer to operate on
+   * @return [Fixnum]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lo_bit",   bt_lo_bit,   1);
+  /* Return the index of the highest 1 bit, where the least-significant bit is index 1.
+   * If `int` is 0, return 0.
+   * @example
+   *   BitTwiddle.hi_bit(1)   # => 1
+   *   BitTwiddle.hi_bit(255) # => 8
+   * @param int [Integer] The integer to operate on
+   * @return [Fixnum]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "hi_bit",   bt_hi_bit,   1);
+  /* Reverse the least-significant and second least-significant bytes of `int`.
+   * @example
+   *   BitTwiddle.bswap16(0xFF00) # => 255
+   *   BitTwiddle.bswap16(0x00FF) # => 65280
+   * @param int [Integer] The integer to operate on
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "bswap16",  bt_bswap16,  1);
+  /* Reverse the least-significant 4 bytes of `int`.
+   *
+   * Does not reverse bits within each byte. This can be used to swap endianness
+   * of a 32-bit integer.
+   *
+   * @example
+   *   BitTwiddle.bswap32(0xaabbccdd).to_s(16) # => "ddccbbaa"
+   *
+   * @param int [Integer] The integer to operate on
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "bswap32",  bt_bswap32,  1);
+  /* Reverse the least-significant 8 bytes of `int`.
+   *
+   * Does not reverse bits within each byte. This can be used to swap endianness
+   * of a 64-bit integer.
+   *
+   * @example
+   *   BitTwiddle.bswap64(0xaabbccdd).to_s(16) # => "ddccbbaa00000000"
+   *
+   * @param int [Integer] The integer to operate on
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "bswap64",  bt_bswap64,  1);
+  /* Left-rotation ("circular shift") of the low 8 bits in `int`.
+   *
+   * If the rotate distance is negative, the bit rotation will be to the right
+   * instead.
+   *
+   * @example
+   *   BitTwiddle.lrot8(0b01110001, 1).to_s(2) # => "11100010"
+   *   BitTwiddle.lrot8(0b01110001, 3).to_s(2) # => "10001011"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param rotdist [Integer] Number of bit positions to rotate by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lrot8",    bt_lrot8,    2);
+  /* Left-rotation ("circular shift") of the low 16 bits in `int`.
+   *
+   * If the rotate distance is negative, the bit rotation will be to the right
+   * instead.
+   *
+   * @example
+   *   BitTwiddle.lrot16(0b0111000101110001, 1).to_s(2) # => "1110001011100010"
+   *   BitTwiddle.lrot16(0b0111000101110001, 3).to_s(2) # => "1000101110001011"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param rotdist [Integer] Number of bit positions to rotate by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lrot16",   bt_lrot16,   2);
+  /* Left-rotation ("circular shift") of the low 32 bits in `int`.
+   *
+   * If the rotate distance is negative, the bit rotation will be to the right
+   * instead.
+   *
+   * @example
+   *   BitTwiddle.lrot32(0xaabbccdd, 4).to_s(16) # => "abbccdda"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param rotdist [Integer] Number of bit positions to rotate by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lrot32",   bt_lrot32,   2);
+  /* Left-rotation ("circular shift") of the low 64 bits in `int`.
+   *
+   * If the rotate distance is negative, the bit rotation will be to the right
+   * instead.
+   *
+   * @example
+   *   BitTwiddle.lrot64(0x11223344aabbccdd, 4).to_s(16) # => "1223344aabbccdd1"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param rotdist [Integer] Number of bit positions to rotate by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lrot64",   bt_lrot64,   2);
+  /* Right-rotation ("circular shift") of the low 8 bits in `int`.
+   *
+   * If the rotate distance is negative, the bit rotation will be to the left
+   * instead.
+   *
+   * @example
+   *   BitTwiddle.rrot8(0b01110001, 1).to_s(2) # => "10111000"
+   *   BitTwiddle.rrot8(0b01110001, 3).to_s(2) # => "101110"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param rotdist [Integer] Number of bit positions to rotate by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "rrot8",    bt_rrot8,    2);
+  /* Right-rotation ("circular shift") of the low 16 bits in `int`.
+   *
+   * If the rotate distance is negative, the bit rotation will be to the left
+   * instead.
+   *
+   * @example
+   *   BitTwiddle.rrot16(0b0111000101110001, 1).to_s(2) # => "1011100010111000"
+   *   BitTwiddle.rrot16(0b0111000101110001, 3).to_s(2) # => "10111000101110"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param rotdist [Integer] Number of bit positions to rotate by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "rrot16",   bt_rrot16,   2);
+  /* Right-rotation ("circular shift") of the low 32 bits in `int`.
+   *
+   * If the rotate distance is negative, the bit rotation will be to the left
+   * instead.
+   *
+   * @example
+   *   BitTwiddle.rrot32(0xaabbccdd, 4).to_s(16) # => "daabbccd"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param rotdist [Integer] Number of bit positions to rotate by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "rrot32",   bt_rrot32,   2);
+  /* Right-rotation ("circular shift") of the low 64 bits in `int`.
+   *
+   * If the rotate distance is negative, the bit rotation will be to the left
+   * instead.
+   *
+   * @example
+   *   BitTwiddle.rrot64(0x11223344aabbccdd, 4).to_s(16) # => "d11223344aabbccd"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param rotdist [Integer] Number of bit positions to rotate by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "rrot64",   bt_rrot64,   2);
+  /* Left-shift of the low 8 bits in `int`.
+   *
+   * If the shift distance is negative, a right shift will be performed instead.
+   * The vacated bit positions will be filled with 0 bits. If shift distance is
+   * more than 7 or less than -7, the low 8 bits will all be zeroed.
+   *
+   * @example
+   *   BitTwiddle.lshift8(0x11223344, 1).to_s(16) # => "11223388"
+   *   BitTwiddle.lshift8(0x11223344, 2).to_s(16) # => "11223310"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lshift8",  bt_lshift8,  2);
+  /* Left-shift of the low 16 bits in `int`.
+   *
+   * If the shift distance is negative, a right shift will be performed instead.
+   * The vacated bit positions will be filled with 0 bits. If shift distance is
+   * more than 15 or less than -15, the low 16 bits will all be zeroed.
+   *
+   * @example
+   *   BitTwiddle.lshift16(0x11223344, 1).to_s(16) # => "11226688"
+   *   BitTwiddle.lshift16(0x11223344, 2).to_s(16) # => "1122cd10"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lshift16", bt_lshift16, 2);
+  /* Left-shift of the low 32 bits in `int`.
+   *
+   * If the shift distance is negative, a right shift will be performed instead.
+   * The vacated bit positions will be filled with 0 bits. If shift distance is
+   * more than 31 or less than -31, the low 32 bits will all be zeroed.
+   *
+   * @example
+   *   BitTwiddle.lshift32(0x11223344, 1).to_s(16) # => "22446688"
+   *   BitTwiddle.lshift32(0x11223344, 2).to_s(16) # => "4488cd10"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lshift32", bt_lshift32, 2);
+  /* Left-shift of the low 64 bits in `int`.
+   *
+   * If the shift distance is negative, a right shift will be performed instead.
+   * The vacated bit positions will be filled with 0 bits. If shift distance is
+   * more than 63 or less than -63, the low 64 bits will all be zeroed.
+   *
+   * @example
+   *   BitTwiddle.lshift64(0x1122334411223344, 1).to_s(16) # => "2244668822446688"
+   *   BitTwiddle.lshift64(0x1122334411223344, 2).to_s(16) # => "4488cd104488cd10"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "lshift64", bt_lshift64, 2);
+  /* Right-shift of the low 8 bits in `int`.
+   *
+   * If the shift distance is negative, a left shift will be performed instead.
+   * The vacated bit positions will be filled with 0 bits. If shift distance is
+   * more than 7 or less than -7, the low 8 bits will all be zeroed.
+   *
+   * @example
+   *   BitTwiddle.rshift8(0x11223344, 1).to_s(16) # => "11223322"
+   *   BitTwiddle.rshift8(0x11223344, 2).to_s(16) # => "11223311"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "rshift8",  bt_rshift8,  2);
+  /* Right-shift of the low 16 bits in `int`.
+   *
+   * If the shift distance is negative, a left shift will be performed instead.
+   * The vacated bit positions will be filled with 0 bits. If shift distance is
+   * more than 15 or less than -15, the low 16 bits will all be zeroed.
+   *
+   * @example
+   *   BitTwiddle.rshift16(0x11223344, 1).to_s(16) # => "112219a2"
+   *   BitTwiddle.rshift16(0x11223344, 2).to_s(16) # => "11220cd1"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "rshift16", bt_rshift16, 2);
+  /* Right-shift of the low 32 bits in `int`.
+   *
+   * If the shift distance is negative, a left shift will be performed instead.
+   * The vacated bit positions will be filled with 0 bits. If shift distance is
+   * more than 31 or less than -31, the low 32 bits will all be zeroed.
+   *
+   * @example
+   *   BitTwiddle.rshift32(0x11223344, 1).to_s(16) # => "89119a2"
+   *   BitTwiddle.rshift32(0x11223344, 2).to_s(16) # => "4488cd1"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "rshift32", bt_rshift32, 2);
+  /* Arithmetic right-shift of the low 64 bits in `int`.
+   *
+   * If bit 64 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+   * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+   * will be performed instead, and the vacated bit positions will be filled with 0s.
+   *
+   * @example
+   *   BitTwiddle.arith_rshift64(0xaabbccddaabbccdd, 1).to_s(16) # => "d55de66ed55de66e"
+   *   BitTwiddle.arith_rshift64(0xaabbccddaabbccdd, 2).to_s(16) # => "eaaef3376aaef337"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "rshift64", bt_rshift64, 2);
+  /* Arithmetic right-shift of the low 8 bits in `int`.
+   *
+   * If bit 8 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+   * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+   * will be performed instead, and the vacated bit positions will be filled with 0s.
+   *
+   * @example
+   *   BitTwiddle.arith_rshift8(0xaabbccdd, 1).to_s(16) # => "aabbccee"
+   *   BitTwiddle.arith_rshift8(0xaabbccdd, 2).to_s(16) # => "aabbccf7"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "arith_rshift8",  bt_arith_rshift8,  2);
+  /* Arithmetic right-shift of the low 16 bits in `int`.
+   *
+   * If bit 16 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+   * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+   * will be performed instead, and the vacated bit positions will be filled with 0s.
+   *
+   * @example
+   *   BitTwiddle.arith_rshift16(0xaabbccdd, 1).to_s(16) # => "aabbe66e"
+   *   BitTwiddle.arith_rshift16(0xaabbccdd, 2).to_s(16) # => "aabbf337"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "arith_rshift16", bt_arith_rshift16, 2);
+  /* Arithmetic right-shift of the low 32 bits in `int`.
+   *
+   * If bit 32 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+   * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+   * will be performed instead, and the vacated bit positions will be filled with 0s.
+   *
+   * @example
+   *   BitTwiddle.arith_rshift32(0xaabbccddaabbccdd, 1).to_s(16) # => "d55de66e"
+   *   BitTwiddle.arith_rshift32(0xaabbccddaabbccdd, 2).to_s(16) # => "eaaef337"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "arith_rshift32", bt_arith_rshift32, 2);
+  /* Arithmetic right-shift of the low 64 bits in `int`.
+   *
+   * If bit 64 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+   * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+   * will be performed instead, and the vacated bit positions will be filled with 0s.
+   *
+   * @example
+   *   BitTwiddle.arith_rshift64(0xaabbccddaabbccdd, 1).to_s(16) # => "d55de66ed55de66e"
+   *   BitTwiddle.arith_rshift64(0xaabbccddaabbccdd, 2).to_s(16) # => "eaaef3376aaef337"
+   *
+   * @param int [Integer] The integer to operate on
+   * @param shiftdist [Integer] Number of bit positions to shift by
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "arith_rshift64", bt_arith_rshift64, 2);
+  /* Reverse the low 8 bits in `int`.
+   *
+   * @example
+   *   BitTwiddle.bitreverse8(0b01101011).to_s(2) # => "11010110"
+   *
+   * @param int [Integer] The integer to operate on
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "bitreverse8",  bt_bitreverse8,  1);
+  /* Reverse the low 16 bits in `int`.
+   *
+   * @example
+   *   BitTwiddle.bitreverse16(0b0110101100001011).to_s(2) # => "1101000011010110"
+   *
+   * @param int [Integer] The integer to operate on
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "bitreverse16", bt_bitreverse16, 1);
+  /* Reverse the low 32 bits in `int`.
+   *
+   * @example
+   *   BitTwiddle.bitreverse32(0x12341234).to_s(16) # => "2c482c48"
+   *
+   * @param int [Integer] The integer to operate on
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "bitreverse32", bt_bitreverse32, 1);
+  /* Reverse the low 64 bits in `int`.
+   *
+   * @example
+   *   BitTwiddle.bitreverse64(0xabcd1234abcd1234).to_s(16) # => "2c48b3d52c48b3d5"
+   *
+   * @param int [Integer] The integer to operate on
+   * @return [Integer]
+   */
   rb_define_singleton_method(rb_mBitTwiddle, "bitreverse64", bt_bitreverse64, 1);
 
 #if 0
