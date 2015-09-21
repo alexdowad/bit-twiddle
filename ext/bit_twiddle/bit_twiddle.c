@@ -90,22 +90,22 @@ store_64_into_bnum(VALUE bnum, uint64_t int64)
   BDIGIT *dest = RBIGNUM_DIGITS(bnum);
   size_t  len  = RBIGNUM_LEN(bnum);
 
-#if SIZEOF_BDIGIT == 8
-  *dest = int64;
-#else
-  if (len > 1) {
-    *dest     = int64;
-    *(dest+1) = int64 >> 32;
-  } else if (int64 & (0xFFFFFFFFULL << 32) == 0) {
-    /* the high 4 bytes are zero anyways */
+  if (SIZEOF_BDIGIT == 8) {
     *dest = int64;
   } else {
-    rb_big_resize(bnum, 2);
-    dest      = RBIGNUM_DIGITS(bnum); /* may have moved */
-    *dest     = int64;
-    *(dest+1) = int64 >> 32;
+    if (len > 1) {
+      *dest     = int64;
+      *(dest+1) = int64 >> 32;
+    } else if (int64 & (0xFFFFFFFFULL << 32) == 0) {
+      /* the high 4 bytes are zero anyways */
+      *dest = int64;
+    } else {
+      rb_big_resize(bnum, 2);
+      dest      = RBIGNUM_DIGITS(bnum); /* may have moved */
+      *dest     = int64;
+      *(dest+1) = int64 >> 32;
+    }
   }
-#endif
 }
 
 static uint64_t
@@ -115,10 +115,8 @@ load_64_from_bignum(VALUE bnum)
   size_t  len = RBIGNUM_LEN(bnum);
   uint64_t result = *src;
 
-#if SIZEOF_BDIGIT == 4
-  if (len > 1)
+  if (SIZEOF_BDIGIT == 4 && len > 1)
     result += ((uint64_t)*(src+1)) << 32;
-#endif
 
   return result;
 }
@@ -158,11 +156,10 @@ modify_lo32_in_bignum(VALUE bnum, uint32_t lo32)
   if (lo32 == (uint32_t)*RBIGNUM_DIGITS(bnum))
     return bnum;
 
-#if SIZEOF_BDIGIT == 4
-  value = lo32;
-#else
-  value = (*RBIGNUM_DIGITS(bnum) & ~0xFFFFFFFFL) | lo32;
-#endif
+  if (SIZEOF_BDIGIT == 4)
+    value = lo32;
+  else
+    value = (*RBIGNUM_DIGITS(bnum) & ~0xFFFFFFFFL) | lo32;
 
 #if SIZEOF_LONG == 4
   /* if a 'long' is only 4 bytes, a 32-bit number could be promoted to Bignum
@@ -342,17 +339,19 @@ bnum_bswap16(VALUE bnum)
 static VALUE
 fnum_bswap32(VALUE fnum)
 {
-#if SIZEOF_LONG == 4
-  /* the size of a Fixnum is always the same as 'long'
-   * and the C standard guarantees 'long' is at least 32 bits
-   * but a couple bits are used for tagging, so the usable precision could
-   * be less than 32 bits...
-   * That is why we have to use a '2NUM' function, not '2FIX' */
-  return ULONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
-#elif SIZEOF_LONG >= 8
-  long value = FIX2LONG(fnum);
-  return LONG2FIX((value & ~0xFFFFFFFFL) | __builtin_bswap32(value));
-#endif
+  long value;
+
+  if (SIZEOF_LONG == 4) {
+    /* the size of a Fixnum is always the same as 'long'
+     * and the C standard guarantees 'long' is at least 32 bits
+     * but a couple bits are used for tagging, so the usable precision could
+     * be less than 32 bits...
+     * That is why we have to use a '2NUM' function, not '2FIX' */
+    return ULONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
+  } else {
+    value = FIX2LONG(fnum);
+    return LONG2FIX((value & ~0xFFFFFFFFL) | __builtin_bswap32(value));
+  }
 }
 
 static VALUE
@@ -463,11 +462,10 @@ static VALUE
 fnum_rrot32(VALUE fnum, VALUE rotdist)
 {
   long     value  = FIX2LONG(fnum);
-#if SIZEOF_LONG == 8
-  return LONG2FIX((value & ~0xFFFFFFFFL) | rrot32(value, rotdist));
-#else
-  return ULONG2NUM(rrot32(value, rotdist));
-#endif
+  if (SIZEOF_LONG == 8)
+    return LONG2FIX((value & ~0xFFFFFFFFL) | rrot32(value, rotdist));
+  else
+    return ULONG2NUM(rrot32(value, rotdist));
 }
 
 static VALUE
@@ -997,15 +995,14 @@ static const uint8_t bitreverse_table[] =
 
 static inline uint8_t reverse8(uint8_t value)
 {
-  #if SIZEOF_LONG == 8
+  if (SIZEOF_LONG == 8)
     /* 64-bit CPU
      * Thanks to the Bit Twiddling Hacks page:
      * http://graphics.stanford.edu/~seander/bithacks.html */
     return (value * 0x0202020202UL & 0x010884422010UL) % 1023;
-  #else
+  else
     /* 32-bit CPU */
     return bitreverse_table[value];
-  #endif
 }
 
 static inline uint16_t reverse16(uint16_t value)
@@ -1075,11 +1072,10 @@ fnum_bitreverse32(VALUE fnum)
 {
   long     value = FIX2LONG(fnum);
   uint32_t lo32  = value;
-#if SIZEOF_LONG == 4
-  return ULONG2NUM(reverse32(lo32));
-#else
-  return LONG2FIX((value & ~0xFFFFFFFFL) | reverse32(lo32));
-#endif
+  if (SIZEOF_LONG == 4)
+    return ULONG2NUM(reverse32(lo32));
+  else
+    return LONG2FIX((value & ~0xFFFFFFFFL) | reverse32(lo32));
 }
 
 static VALUE
