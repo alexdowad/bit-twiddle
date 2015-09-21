@@ -1108,16 +1108,8 @@ bnum_bitreverse64(VALUE bnum)
   return modify_lo64_in_bignum(bnum, reverse64(load_64_from_bignum(bnum)));
 }
 
-/* Document-class: Fixnum
- * Ruby's good old Fixnum.
- */
-/* Document-class: Bignum
- * Ruby's good old Bignum.
- */
-/* Document-class: String
- * Ruby's good old String.
- */
-void Init_bit_twiddle(void)
+static VALUE
+bt_add_core_extensions(VALUE self)
 {
   rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
   rb_define_method(rb_cBignum, "popcount", bnum_popcount, 0);
@@ -1188,4 +1180,106 @@ void Init_bit_twiddle(void)
   rb_define_method(rb_cBignum, "bitreverse32", bnum_bitreverse32, 0);
   rb_define_method(rb_cFixnum, "bitreverse64", fnum_bitreverse64, 0);
   rb_define_method(rb_cBignum, "bitreverse64", bnum_bitreverse64, 0);
+
+  return Qnil;
+}
+
+/* Wrapper functions are used for methods on BitTwiddle module */
+#define def_wrapper(name) \
+  static VALUE bt_ ## name(VALUE self, VALUE num) \
+  { \
+    retry: \
+    switch (TYPE(num)) { \
+    case T_FIXNUM: return fnum_ ## name(num); \
+    case T_BIGNUM: return bnum_ ## name(num); \
+    default: num = rb_to_int(num); goto retry; \
+    } \
+  }
+#define def_wrapper_with_arg(name) \
+  static VALUE bt_ ## name(VALUE self, VALUE num, VALUE arg) \
+  { \
+    retry: \
+    switch (TYPE(num)) { \
+    case T_FIXNUM: return fnum_ ## name(num, arg); \
+    case T_BIGNUM: return bnum_ ## name(num, arg); \
+    default: num = rb_to_int(num); goto retry; \
+    } \
+  }
+
+def_wrapper(popcount);
+def_wrapper(lo_bit);
+def_wrapper(hi_bit);
+def_wrapper(bswap16);
+def_wrapper(bswap32);
+def_wrapper(bswap64);
+def_wrapper_with_arg(lrot8);
+def_wrapper_with_arg(lrot16);
+def_wrapper_with_arg(lrot32);
+def_wrapper_with_arg(lrot64);
+def_wrapper_with_arg(rrot8);
+def_wrapper_with_arg(rrot16);
+def_wrapper_with_arg(rrot32);
+def_wrapper_with_arg(rrot64);
+def_wrapper_with_arg(lshift8);
+def_wrapper_with_arg(lshift16);
+def_wrapper_with_arg(lshift32);
+def_wrapper_with_arg(lshift64);
+def_wrapper_with_arg(rshift8);
+def_wrapper_with_arg(rshift16);
+def_wrapper_with_arg(rshift32);
+def_wrapper_with_arg(rshift64);
+def_wrapper_with_arg(arith_rshift8);
+def_wrapper_with_arg(arith_rshift16);
+def_wrapper_with_arg(arith_rshift32);
+def_wrapper_with_arg(arith_rshift64);
+def_wrapper(bitreverse8);
+def_wrapper(bitreverse16);
+def_wrapper(bitreverse32);
+def_wrapper(bitreverse64);
+
+/* Document-class: Fixnum
+ * Ruby's good old Fixnum.
+ */
+/* Document-class: Bignum
+ * Ruby's good old Bignum.
+ */
+/* Document-class: String
+ * Ruby's good old String.
+ */
+void Init_bit_twiddle(void)
+{
+  VALUE rb_mBitTwiddle = rb_define_module("BitTwiddle");
+
+  rb_define_singleton_method(rb_mBitTwiddle, "add_core_extensions", bt_add_core_extensions, 0);
+
+  rb_define_singleton_method(rb_mBitTwiddle, "popcount", bt_popcount, 1);
+  rb_define_singleton_method(rb_mBitTwiddle, "lo_bit",   bt_lo_bit,   1);
+  rb_define_singleton_method(rb_mBitTwiddle, "hi_bit",   bt_hi_bit,   1);
+  rb_define_singleton_method(rb_mBitTwiddle, "bswap16",  bt_bswap16,  1);
+  rb_define_singleton_method(rb_mBitTwiddle, "bswap32",  bt_bswap32,  1);
+  rb_define_singleton_method(rb_mBitTwiddle, "bswap64",  bt_bswap64,  1);
+  rb_define_singleton_method(rb_mBitTwiddle, "lrot8",    bt_lrot8,    2);
+  rb_define_singleton_method(rb_mBitTwiddle, "lrot16",   bt_lrot16,   2);
+  rb_define_singleton_method(rb_mBitTwiddle, "lrot32",   bt_lrot32,   2);
+  rb_define_singleton_method(rb_mBitTwiddle, "lrot64",   bt_lrot64,   2);
+  rb_define_singleton_method(rb_mBitTwiddle, "rrot8",    bt_rrot8,    2);
+  rb_define_singleton_method(rb_mBitTwiddle, "rrot16",   bt_rrot16,   2);
+  rb_define_singleton_method(rb_mBitTwiddle, "rrot32",   bt_rrot32,   2);
+  rb_define_singleton_method(rb_mBitTwiddle, "rrot64",   bt_rrot64,   2);
+  rb_define_singleton_method(rb_mBitTwiddle, "lshift8",  bt_lshift8,  2);
+  rb_define_singleton_method(rb_mBitTwiddle, "lshift16", bt_lshift16, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "lshift32", bt_lshift32, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "lshift64", bt_lshift64, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "rshift8",  bt_rshift8,  2);
+  rb_define_singleton_method(rb_mBitTwiddle, "rshift16", bt_rshift16, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "rshift32", bt_rshift32, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "rshift64", bt_rshift64, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "arith_rshift8",  bt_arith_rshift8,  2);
+  rb_define_singleton_method(rb_mBitTwiddle, "arith_rshift16", bt_arith_rshift16, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "arith_rshift32", bt_arith_rshift32, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "arith_rshift64", bt_arith_rshift64, 2);
+  rb_define_singleton_method(rb_mBitTwiddle, "bitreverse8",  bt_bitreverse8,  1);
+  rb_define_singleton_method(rb_mBitTwiddle, "bitreverse16", bt_bitreverse16, 1);
+  rb_define_singleton_method(rb_mBitTwiddle, "bitreverse32", bt_bitreverse32, 1);
+  rb_define_singleton_method(rb_mBitTwiddle, "bitreverse64", bt_bitreverse64, 1);
 }

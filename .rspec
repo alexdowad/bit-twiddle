@@ -1,4 +1,4 @@
+--require bit-twiddle/core_ext
 --require spec_helper
---require bit-twiddle
 --color
 --format documentation
