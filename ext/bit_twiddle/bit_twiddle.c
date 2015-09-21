@@ -1171,10 +1171,14 @@ void Init_bit_twiddle(void)
   rb_define_method(rb_cFixnum, "rshift64",  fnum_rshift64, 1);
   rb_define_method(rb_cBignum, "rshift64",  bnum_rshift64, 1);
 
-  rb_define_method(rb_cFixnum, "arith_rshift32",  fnum_arith_rshift32, 1);
-  rb_define_method(rb_cBignum, "arith_rshift32",  bnum_arith_rshift32, 1);
-  rb_define_method(rb_cFixnum, "arith_rshift64",  fnum_arith_rshift64, 1);
-  rb_define_method(rb_cBignum, "arith_rshift64",  bnum_arith_rshift64, 1);
+  rb_define_method(rb_cFixnum, "arith_rshift8",  fnum_arith_rshift8,  1);
+  rb_define_method(rb_cBignum, "arith_rshift8",  bnum_arith_rshift8,  1);
+  rb_define_method(rb_cFixnum, "arith_rshift16", fnum_arith_rshift16, 1);
+  rb_define_method(rb_cBignum, "arith_rshift16", bnum_arith_rshift16, 1);
+  rb_define_method(rb_cFixnum, "arith_rshift32", fnum_arith_rshift32, 1);
+  rb_define_method(rb_cBignum, "arith_rshift32", bnum_arith_rshift32, 1);
+  rb_define_method(rb_cFixnum, "arith_rshift64", fnum_arith_rshift64, 1);
+  rb_define_method(rb_cBignum, "arith_rshift64", bnum_arith_rshift64, 1);
 
   rb_define_method(rb_cFixnum, "bitreverse8",  fnum_bitreverse8,  0);
   rb_define_method(rb_cBignum, "bitreverse8",  bnum_bitreverse8,  0);
