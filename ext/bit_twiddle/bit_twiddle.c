@@ -192,7 +192,9 @@ modify_lo64_in_bignum(VALUE bnum, uint64_t lo64)
   return result;
 }
 
-/* Return the number of 1 bits in this integer.
+/* Document-method: Fixnum#popcount
+ * Document-method: Bignum#popcount
+ * Return the number of 1 bits in this integer.
  * @example
  *   7.popcount   # => 3
  *   255.popcount # => 8
@@ -242,7 +244,9 @@ str_popcount(VALUE str)
   return LONG2FIX(bits);
 }
 
-/* Return the index of the lowest 1 bit, where the least-significant bit is index 1.
+/* Document-method: Fixnum#lo_bit
+ * Document-method: Bignum#lo_bit
+ * Return the index of the lowest 1 bit, where the least-significant bit is index 1.
  * If this integer is 0, return 0.
  * @example
  *   1.lo_bit   # => 1
@@ -270,7 +274,9 @@ bnum_lo_bit(VALUE bnum)
   return LONG2FIX(bits);
 }
 
-/* Return the index of the highest 1 bit, where the least-significant bit is index 1.
+/* Document-method: Fixnum#hi_bit
+ * Document-method: Bignum#hi_bit
+ * Return the index of the highest 1 bit, where the least-significant bit is index 1.
  * If this integer is 0, return 0.
  * @example
  *   1.hi_bit   # => 1
@@ -304,7 +310,9 @@ bnum_hi_bit(VALUE bnum)
   return LONG2FIX(bits);
 }
 
-/* Reverse the least-significant and second least-significant bytes of this integer.
+/* Document-method: Fixnum#bswap16
+ * Document-method: Bignum#bswap16
+ * Reverse the least-significant and second least-significant bytes of this integer.
  * @example
  *   0xFF00.bswap16 # => 255
  *   0x00FF.bswap16 # => 65280
@@ -326,7 +334,9 @@ bnum_bswap16(VALUE bnum)
   return result;
 }
 
-/* Reverse the least-significant 4 bytes of this integer.
+/* Document-method: Fixnum#bswap32
+ * Document-method: Bignum#bswap32
+ * Reverse the least-significant 4 bytes of this integer.
  *
  * Does not reverse bits within each byte. This can be used to swap endianness
  * of a 32-bit integer.
@@ -360,7 +370,9 @@ bnum_bswap32(VALUE bnum)
   return modify_lo32_in_bignum(bnum, __builtin_bswap32(*RBIGNUM_DIGITS(bnum)));
 }
 
-/* Reverse the least-significant 8 bytes of this integer.
+/* Document-method: Fixnum#bswap64
+ * Document-method: Bignum#bswap64
+ * Reverse the least-significant 8 bytes of this integer.
  *
  * Does not reverse bits within each byte. This can be used to swap endianness
  * of a 64-bit integer.
@@ -397,7 +409,9 @@ def_rot_helpers(16);
 def_rot_helpers(32);
 def_rot_helpers(64);
 
-/* Right-rotation ("circular shift") of the low 8 bits in this integer.
+/* Document-method: Fixnum#rrot8
+ * Document-method: Bignum#rrot8
+ * Right-rotation ("circular shift") of the low 8 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the left
  * instead.
@@ -422,7 +436,9 @@ bnum_rrot8(VALUE bnum, VALUE rotdist)
   return modify_lo8_in_bignum(bnum, rrot8(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Right-rotation ("circular shift") of the low 16 bits in this integer.
+/* Document-method: Fixnum#rrot16
+ * Document-method: Bignum#rrot16
+ * Right-rotation ("circular shift") of the low 16 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the left
  * instead.
@@ -447,7 +463,9 @@ bnum_rrot16(VALUE bnum, VALUE rotdist)
   return modify_lo16_in_bignum(bnum, rrot16(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Right-rotation ("circular shift") of the low 32 bits in this integer.
+/* Document-method: Fixnum#rrot32
+ * Document-method: Bignum#rrot32
+ * Right-rotation ("circular shift") of the low 32 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the left
  * instead.
@@ -474,7 +492,9 @@ bnum_rrot32(VALUE bnum, VALUE rotdist)
   return modify_lo32_in_bignum(bnum, rrot32(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Right-rotation ("circular shift") of the low 64 bits in this integer.
+/* Document-method: Fixnum#rrot64
+ * Document-method: Bignum#rrot64
+ * Right-rotation ("circular shift") of the low 64 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the left
  * instead.
@@ -497,7 +517,9 @@ bnum_rrot64(VALUE bnum, VALUE rotdist)
   return modify_lo64_in_bignum(bnum, rrot64(load_64_from_bignum(bnum), rotdist));
 }
 
-/* Left-rotation ("circular shift") of the low 8 bits in this integer.
+/* Document-method: Fixnum#lrot8
+ * Document-method: Bignum#lrot8
+ * Left-rotation ("circular shift") of the low 8 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the right
  * instead.
@@ -522,7 +544,9 @@ bnum_lrot8(VALUE bnum, VALUE rotdist)
   return modify_lo8_in_bignum(bnum, lrot8(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Left-rotation ("circular shift") of the low 16 bits in this integer.
+/* Document-method: Fixnum#lrot16
+ * Document-method: Bignum#lrot16
+ * Left-rotation ("circular shift") of the low 16 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the right
  * instead.
@@ -547,7 +571,9 @@ bnum_lrot16(VALUE bnum, VALUE rotdist)
   return modify_lo16_in_bignum(bnum, lrot16(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Left-rotation ("circular shift") of the low 32 bits in this integer.
+/* Document-method: Fixnum#lrot32
+ * Document-method: Bignum#lrot32
+ * Left-rotation ("circular shift") of the low 32 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the right
  * instead.
@@ -571,7 +597,9 @@ bnum_lrot32(VALUE bnum, VALUE rotdist)
   return modify_lo32_in_bignum(bnum, lrot32(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Left-rotation ("circular shift") of the low 64 bits in this integer.
+/* Document-method: Fixnum#lrot64
+ * Document-method: Bignum#lrot64
+ * Left-rotation ("circular shift") of the low 64 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the right
  * instead.
@@ -632,7 +660,9 @@ def_shift_helpers(16);
 def_shift_helpers(32);
 def_shift_helpers(64);
 
-/* Left-shift of the low 8 bits in this integer.
+/* Document-method: Fixnum#lshift8
+ * Document-method: Bignum#lshift8
+ * Left-shift of the low 8 bits in this integer.
  *
  * If the shift distance is negative, a right shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
@@ -664,7 +694,9 @@ bnum_lshift8(VALUE bnum, VALUE shiftdist)
     return modify_lo8_in_bignum(bnum, lshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Left-shift of the low 16 bits in this integer.
+/* Document-method: Fixnum#lshift16
+ * Document-method: Bignum#lshift16
+ * Left-shift of the low 16 bits in this integer.
  *
  * If the shift distance is negative, a right shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
@@ -696,7 +728,9 @@ bnum_lshift16(VALUE bnum, VALUE shiftdist)
     return modify_lo16_in_bignum(bnum, lshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Left-shift of the low 32 bits in this integer.
+/* Document-method: Fixnum#lshift32
+ * Document-method: Bignum#lshift32
+ * Left-shift of the low 32 bits in this integer.
  *
  * If the shift distance is negative, a right shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
@@ -728,7 +762,9 @@ bnum_lshift32(VALUE bnum, VALUE shiftdist)
     return modify_lo32_in_bignum(bnum, lshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Left-shift of the low 64 bits in this integer.
+/* Document-method: Fixnum#lshift64
+ * Document-method: Bignum#lshift64
+ * Left-shift of the low 64 bits in this integer.
  *
  * If the shift distance is negative, a right shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
@@ -765,7 +801,9 @@ bnum_lshift64(VALUE bnum, VALUE shiftdist)
     return modify_lo64_in_bignum(bnum, lshift64(load_64_from_bignum(bnum), shiftdist));
 }
 
-/* Right-shift of the low 8 bits in this integer.
+/* Document-method: Fixnum#rshift8
+ * Document-method: Bignum#rshift8
+ * Right-shift of the low 8 bits in this integer.
  *
  * If the shift distance is negative, a left shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
@@ -797,7 +835,9 @@ bnum_rshift8(VALUE bnum, VALUE shiftdist)
     return modify_lo8_in_bignum(bnum, rshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Right-shift of the low 16 bits in this integer.
+/* Document-method: Fixnum#rshift16
+ * Document-method: Bignum#rshift16
+ * Right-shift of the low 16 bits in this integer.
  *
  * If the shift distance is negative, a left shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
@@ -829,7 +869,9 @@ bnum_rshift16(VALUE bnum, VALUE shiftdist)
     return modify_lo16_in_bignum(bnum, rshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Right-shift of the low 32 bits in this integer.
+/* Document-method: Fixnum#rshift32
+ * Document-method: Bignum#rshift32
+ * Right-shift of the low 32 bits in this integer.
  *
  * If the shift distance is negative, a left shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
@@ -861,7 +903,9 @@ bnum_rshift32(VALUE bnum, VALUE shiftdist)
     return modify_lo32_in_bignum(bnum, rshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Right-shift of the low 64 bits in this integer.
+/* Document-method: Fixnum#rshift64
+ * Document-method: Bignum#rshift64
+ * Right-shift of the low 64 bits in this integer.
  *
  * If the shift distance is negative, a left shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
@@ -1020,7 +1064,9 @@ static inline uint64_t reverse64(uint64_t value)
   return ((uint64_t)reverse32(value) << 32) | reverse32(value >> 32);
 }
 
-/* Reverse the low 8 bits in this integer.
+/* Document-method: Fixnum#bitreverse8
+ * Document-method: Bignum#bitreverse8
+ * Reverse the low 8 bits in this integer.
  *
  * @example
  *   0b01101011.bitreverse8.to_s(2) # => "11010110"
@@ -1040,7 +1086,9 @@ bnum_bitreverse8(VALUE bnum)
   return modify_lo8_in_bignum(bnum, reverse8(*RBIGNUM_DIGITS(bnum)));
 }
 
-/* Reverse the low 16 bits in this integer.
+/* Document-method: Fixnum#bitreverse16
+ * Document-method: Bignum#bitreverse16
+ * Reverse the low 16 bits in this integer.
  *
  * @example
  *   0b0110101100001011.bitreverse16.to_s(2) # => "1101000011010110"
@@ -1060,7 +1108,9 @@ bnum_bitreverse16(VALUE bnum)
   return modify_lo16_in_bignum(bnum, reverse16(*RBIGNUM_DIGITS(bnum)));
 }
 
-/* Reverse the low 32 bits in this integer.
+/* Document-method: Fixnum#bitreverse32
+ * Document-method: Bignum#bitreverse32
+ * Reverse the low 32 bits in this integer.
  *
  * @example
  *   0x12341234.bitreverse32.to_s(16) # => "2c482c48"
@@ -1084,7 +1134,9 @@ bnum_bitreverse32(VALUE bnum)
   return modify_lo32_in_bignum(bnum, reverse32(*RBIGNUM_DIGITS(bnum)));
 }
 
-/* Reverse the low 64 bits in this integer.
+/* Document-method: Fixnum#bitreverse64
+ * Document-method: Bignum#bitreverse64
+ * Reverse the low 64 bits in this integer.
  *
  * @example
  *   0xabcd1234abcd1234.bitreverse64.to_s(16) # => "2c48b3d52c48b3d5"
@@ -1292,30 +1344,30 @@ void Init_bit_twiddle(void)
    rb_define_method(rb_cFixnum, "hi_bit",   fnum_hi_bit, 0);
    rb_define_method(rb_cBignum, "hi_bit",   bnum_hi_bit, 0);
 
-   rb_define_method(rb_cFixnum, "bswap16",  fnum_bswap16, 0);
-   rb_define_method(rb_cBignum, "bswap16",  bnum_bswap16, 0);
-   rb_define_method(rb_cFixnum, "bswap32",  fnum_bswap32, 0);
-   rb_define_method(rb_cBignum, "bswap32",  bnum_bswap32, 0);
-   rb_define_method(rb_cFixnum, "bswap64",  fnum_bswap64, 0);
-   rb_define_method(rb_cBignum, "bswap64",  bnum_bswap64, 0);
+   rb_define_method(rb_cFixnum, "bswap16", fnum_bswap16, 0);
+   rb_define_method(rb_cBignum, "bswap16", bnum_bswap16, 0);
+   rb_define_method(rb_cFixnum, "bswap32", fnum_bswap32, 0);
+   rb_define_method(rb_cBignum, "bswap32", bnum_bswap32, 0);
+   rb_define_method(rb_cFixnum, "bswap64", fnum_bswap64, 0);
+   rb_define_method(rb_cBignum, "bswap64", bnum_bswap64, 0);
 
-   rb_define_method(rb_cFixnum, "rrot8",    fnum_rrot8,  1);
-   rb_define_method(rb_cBignum, "rrot8",    bnum_rrot8,  1);
-   rb_define_method(rb_cFixnum, "rrot16",   fnum_rrot16, 1);
-   rb_define_method(rb_cBignum, "rrot16",   bnum_rrot16, 1);
-   rb_define_method(rb_cFixnum, "rrot32",   fnum_rrot32, 1);
-   rb_define_method(rb_cBignum, "rrot32",   bnum_rrot32, 1);
-   rb_define_method(rb_cFixnum, "rrot64",   fnum_rrot64, 1);
-   rb_define_method(rb_cBignum, "rrot64",   bnum_rrot64, 1);
+   rb_define_method(rb_cFixnum, "rrot8",  fnum_rrot8,  1);
+   rb_define_method(rb_cBignum, "rrot8",  bnum_rrot8,  1);
+   rb_define_method(rb_cFixnum, "rrot16", fnum_rrot16, 1);
+   rb_define_method(rb_cBignum, "rrot16", bnum_rrot16, 1);
+   rb_define_method(rb_cFixnum, "rrot32", fnum_rrot32, 1);
+   rb_define_method(rb_cBignum, "rrot32", bnum_rrot32, 1);
+   rb_define_method(rb_cFixnum, "rrot64", fnum_rrot64, 1);
+   rb_define_method(rb_cBignum, "rrot64", bnum_rrot64, 1);
 
-   rb_define_method(rb_cFixnum, "lrot8",    fnum_lrot8,  1);
-   rb_define_method(rb_cBignum, "lrot8",    bnum_lrot8,  1);
-   rb_define_method(rb_cFixnum, "lrot16",   fnum_lrot16, 1);
-   rb_define_method(rb_cBignum, "lrot16",   bnum_lrot16, 1);
-   rb_define_method(rb_cFixnum, "lrot32",   fnum_lrot32, 1);
-   rb_define_method(rb_cBignum, "lrot32",   bnum_lrot32, 1);
-   rb_define_method(rb_cFixnum, "lrot64",   fnum_lrot64, 1);
-   rb_define_method(rb_cBignum, "lrot64",   bnum_lrot64, 1);
+   rb_define_method(rb_cFixnum, "lrot8",  fnum_lrot8,  1);
+   rb_define_method(rb_cBignum, "lrot8",  bnum_lrot8,  1);
+   rb_define_method(rb_cFixnum, "lrot16", fnum_lrot16, 1);
+   rb_define_method(rb_cBignum, "lrot16", bnum_lrot16, 1);
+   rb_define_method(rb_cFixnum, "lrot32", fnum_lrot32, 1);
+   rb_define_method(rb_cBignum, "lrot32", bnum_lrot32, 1);
+   rb_define_method(rb_cFixnum, "lrot64", fnum_lrot64, 1);
+   rb_define_method(rb_cBignum, "lrot64", bnum_lrot64, 1);
 
    rb_define_method(rb_cFixnum, "lshift8",   fnum_lshift8,  1);
    rb_define_method(rb_cBignum, "lshift8",   bnum_lshift8,  1);
@@ -1353,5 +1405,4 @@ void Init_bit_twiddle(void)
    rb_define_method(rb_cFixnum, "bitreverse64", fnum_bitreverse64, 0);
    rb_define_method(rb_cBignum, "bitreverse64", bnum_bitreverse64, 0);
 #endif
-
 }
