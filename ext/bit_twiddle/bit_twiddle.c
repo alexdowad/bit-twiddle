@@ -27,6 +27,14 @@
 #error "Sorry, Fixnum#arith_rshift64 will not work if sizeof(long) > 8. Please report this error."
 #endif
 
+#if HAVE_BSWAP16 == 0
+/* stupid bug in GCC 4.7 */
+uint16_t __builtin_bswap16(uint16_t value)
+{
+  return (value >> 8) | (value << 8);
+}
+#endif
+
 static int
 bnum_greater(VALUE bnum, BDIGIT value)
 {

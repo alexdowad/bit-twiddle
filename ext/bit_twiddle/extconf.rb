@@ -11,4 +11,10 @@ checking_for("whether >> on a signed long is arithmetic shift or logical shift",
   is_arith ? "arithmetic" : "logical"
 end
 
+checking_for("presence of __builtin_bswap16", "%s") do
+  have_bswap16 = try_static_assert("__builtin_bswap16(0xAABB) == 0xBBAA")
+  $defs.push("-DHAVE_BSWAP16=#{have_bswap16 ? '1' : '0'}")
+  have_bswap16 ? "oh yeah" : "nope...but we can sure fix that"
+end
+
 create_makefile 'bit_twiddle'
