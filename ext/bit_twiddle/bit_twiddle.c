@@ -1,4 +1,5 @@
 #include <ruby.h>
+#include "bt_bignum.h"
 
 #define fix_zero LONG2FIX(0L)
 #define BIGNUM_P(x) RB_TYPE_P((x), T_BIGNUM)

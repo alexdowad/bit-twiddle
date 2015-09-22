@@ -1,9 +1,20 @@
 require 'mkmf'
 
+dir = File.dirname(__FILE__)
+
 $CFLAGS << ' -Wall -Werror -O3 -march=native -mtune=native '
-check_sizeof 'BDIGIT'
+
+if RUBY_VERSION < '2.2.0'
+  check_sizeof 'BDIGIT'
+  $CFLAGS << " -I#{File.join(dir, 'ruby21')} "
+else
+  $CFLAGS << " -I#{File.join(dir, 'ruby22')} "
+end
+
+check_sizeof 'short'
 check_sizeof 'int'
 check_sizeof 'long'
+check_sizeof 'long long'
 
 checking_for("whether >> on a signed long is arithmetic shift or logical shift", "%s") do
   is_arith = try_static_assert("(-1L >> (sizeof(long)/8)) == -1L")
