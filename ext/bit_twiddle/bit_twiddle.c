@@ -96,7 +96,7 @@ store_64_into_bnum(VALUE bnum, uint64_t int64)
     if (len > 1) {
       *dest     = int64;
       *(dest+1) = int64 >> 32;
-    } else if (int64 & (0xFFFFFFFFULL << 32) == 0) {
+    } else if ((int64 & (0xFFFFFFFFULL << 32)) == 0) {
       /* the high 4 bytes are zero anyways */
       *dest = int64;
     } else {
