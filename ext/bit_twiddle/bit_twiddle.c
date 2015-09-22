@@ -1348,12 +1348,18 @@ def_wrapper(bitreverse64);
 
 /* Document-class: Fixnum
  * Ruby's good old Fixnum.
+ *
+ * `require "bit-twiddle/core_ext"` before trying to use any of the below methods.
  */
 /* Document-class: Bignum
  * Ruby's good old Bignum.
+ *
+ * `require "bit-twiddle/core_ext"` before trying to use any of the below methods.
  */
 /* Document-class: String
  * Ruby's good old String.
+ *
+ * `require "bit-twiddle/core_ext"` before trying to use any of the below methods.
  */
 void Init_bit_twiddle(void)
 {
