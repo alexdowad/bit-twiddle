@@ -20,17 +20,95 @@ Or for all operations to be defined as instance methods on `Fixnum` and `Bignum`
 require "bit-twiddle/core_ext"
 ```
 
-Ruby does not use a fixed bit width for integers. Rather, the number of bits used for a `Fixnum` is the size of a `long` in the underlying C implementation. The bit width of a `Bignum` varies with its magnitude (typically it's a multiple of 32 bits). This raises the question of what operations which are dependent on bit width, like reversing bits in an integer, should do. Should they return results which vary depending on the bit width used by the underlying, platform-dependent integer representation? That would cause all kinds of headaches.
+In many cases, `bit-twiddle` operations explicitly work on the low 8, 16, 32, or 64 bits of an integer. (For example, it defines `#bitreverse8`, `#bitreverse16`, `#bitreverse32`, and `#bitreverse64` methods.) If an integer's bit width is larger than the number of bits operated on, the higher-end bits are passed through unchanged.
 
-Instead, `bit-twiddle` defines operations which explicitly work on the low 8, low 16, low 32, or low 64 bits of an integer. For example, it defines `#bitreverse8`, `#bitreverse16`, `#bitreverse32`, and `#bitreverse64` methods. If an integer's bit width is larger than the number of bits operated on, the higher-end bits are passed through unchanged. All these methods automatically convert between `Fixnum` and `Bignum` as is appropriate to represent their result.
+All methods automatically convert between `Fixnum` and `Bignum` as is most appropriate to represent their result.
 
-Here is what it offers:
+## Examples
 
 ### Population count
 
 "Popcount" or "population count" refers to the number of 1 bits in a binary number. For example, the popcount of 11 (binary 1011) is 3. Typically, Ruby programmers use goofy tricks like `num.to_s(2).count("1")` to compute this quantity. This is much faster, and doesn't needlessly allocate memory:
 
-```
+```ruby
 7.popcount   # => 3
 255.popcount # => 255
+```
+
+### Highest/lowest set bit
+
+```ruby
+8.hi_bit   # => 4
+255.hi_bit # => 8
+8.lo_bit   # => 4
+255.lo_bit # => 1
+```
+
+### Rotating bits
+
+```ruby
+0b10010011.rrot8(1).to_s(2).rjust(8,'0') # => "11001001"
+0b10010011.rrot8(2).to_s(2).rjust(8,'0') # => "11100100"
+0b10010011.rrot8(3).to_s(2).rjust(8,'0') # => "01110010"
+0b10010011.rrot8(4).to_s(2).rjust(8,'0') # => "00111001"
+0b10010011.rrot8(5).to_s(2).rjust(8,'0') # => "10011100"
+0b10010011.rrot8(6).to_s(2).rjust(8,'0') # => "01001110"
+
+0b10010011.lrot8(1).to_s(2).rjust(8,'0') # => "00100111"
+0b10010011.lrot8(2).to_s(2).rjust(8,'0') # => "01001110"
+0b10010011.lrot8(3).to_s(2).rjust(8,'0') # => "10011100"
+0b10010011.lrot8(4).to_s(2).rjust(8,'0') # => "00111001"
+0b10010011.lrot8(5).to_s(2).rjust(8,'0') # => "01110010"
+0b10010011.lrot8(6).to_s(2).rjust(8,'0') # => "11100100"
+```
+
+8/16/32/64 bit variants are available.
+
+### Reversing bytes
+
+```ruby
+0x11223344.bswap16.to_s(16) # => "11224433"
+0x11223344.bswap32.to_s(16) # => "44332211"
+0x11223344.bswap64.to_s(16) # => "4433221100000000"
+```
+
+### Reversing bits
+
+```ruby
+0b10010011.bitreverse8.to_s(2) # => "11001001"
+```
+
+8/16/32/64 bit variants are available.
+
+### "Arithmetic" right bitshift
+
+An arithmetic right shift fills the vacated bit positions with copies of the most-significant (or "sign") bit. In contrast, Ruby's `Integer#>>` is a "logical" right shift -- it fills the vacated bit positions with zeroes.
+
+```ruby
+0b10001111.arith_rshift8(3).to_s(2).rjust(8,'0') # => "11110001"
+0b00001111.arith_rshift8(3).to_s(2).rjust(8,'0') # => "00000001"
+```
+
+8/16/32/64 bit variants are available.
+
+### Logical left and right bitshifts
+
+Ruby already provides `Integer#<<` and `#>>`, which perform logical left and right bitshifts, so these are less useful than the other `BitTwiddle` methods. Probably the only reason to use them is if you want to explicitly operate on the low 8/16/32/64 bits:
+
+```ruby
+0b10001111.rshift8(3).to_s(2).rjust(8,'0') # => "01000111"
+0b10001111.lshift8(2).to_s(2).rjust(8,'0') # => "00111100"
+```
+
+8/16/32/64 bit variants are available.
+
+## Detailed documentation
+
+Clone yourself up a copy of this repo, then generate some local HTML documentation (with examples for each and every method):
+
+```
+git clone https://github.com/alexdowad/bit-twiddle.git
+cd bit-twiddle
+bundle install
+rake yard
 ```
