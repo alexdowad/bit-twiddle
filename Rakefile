@@ -1,10 +1,14 @@
 require "rake/extensiontask"
+require "yard"
 
 ROOT = File.dirname(__FILE__)
 
 Rake::ExtensionTask.new "bit_twiddle" do |ext|
   ext.lib_dir = "lib"
 end
+
+desc "Rake the Yard (...actually, generate HTML documentation)"
+YARD::Rake::YardocTask.new
 
 def benchmarks
   Dir[ROOT + '/bench/*_bench.rb']
