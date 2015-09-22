@@ -37,4 +37,4 @@ end
 desc "Run all benchmarks"
 task bench: benchmarks.map(&method(:bench_task_name))
 
-task default: [:spec]
+task default: [:compile, :spec]
