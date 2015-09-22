@@ -1,14 +1,18 @@
 require "rake/extensiontask"
+require "rspec/core/rake_task"
 require "yard"
 
 ROOT = File.dirname(__FILE__)
 
-Rake::ExtensionTask.new "bit_twiddle" do |ext|
-  ext.lib_dir = "lib"
-end
+desc "Run all the tests in ./spec"
+RSpec::Core::RakeTask.new(:spec)
 
 desc "Rake the Yard (...actually, generate HTML documentation)"
 YARD::Rake::YardocTask.new
+
+Rake::ExtensionTask.new "bit_twiddle" do |ext|
+  ext.lib_dir = "lib"
+end
 
 def benchmarks
   Dir[ROOT + '/bench/*_bench.rb']
@@ -32,3 +36,5 @@ end
 
 desc "Run all benchmarks"
 task bench: benchmarks.map(&method(:bench_task_name))
+
+task default: [:spec]
