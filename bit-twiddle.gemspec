@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'bit-twiddle'
-  s.version     = '0.0.1'
-  s.date        = '2015-08-29'
+  s.version     = '0.0.2'
+  s.date        = Time.now.strftime('%Y-%m-%d')
   s.summary     = 'Fast bitwise operations for Ruby'
   s.description = 'Fast (native) bitwise operations for Ruby, in addition to the ones provided by the standard library'
   s.authors     = ['Alex Dowad']
