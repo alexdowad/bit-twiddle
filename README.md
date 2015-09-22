@@ -28,7 +28,9 @@ All methods automatically convert between `Fixnum` and `Bignum` as is most appro
 
 ### Population count
 
-"Popcount" or "population count" refers to the number of 1 bits in a binary number. For example, the popcount of 11 (binary 1011) is 3. Typically, Ruby programmers use goofy tricks like `num.to_s(2).count("1")` to compute this quantity. This is much faster, and doesn't needlessly allocate memory:
+"Popcount" or "population count" refers to the number of 1 bits in a binary number. For example, the popcount of decimal 11 (binary 1011) is 3.
+
+Typically, Ruby programmers use goofy tricks like `num.to_s(2).count("1")` to compute this quantity. This is much faster, and doesn't needlessly allocate memory:
 
 ```ruby
 7.popcount   # => 3
