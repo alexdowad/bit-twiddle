@@ -30,7 +30,7 @@
 
 #if HAVE_BSWAP16 == 0
 /* stupid bug in GCC 4.7 */
-uint16_t __builtin_bswap16(uint16_t value)
+static inline uint16_t __builtin_bswap16(uint16_t value)
 {
   return (value >> 8) | (value << 8);
 }
