@@ -365,7 +365,7 @@ bnum_bswap16(VALUE bnum)
  * Reverse the least-significant 4 bytes of this integer.
  *
  * Does not reverse bits within each byte. This can be used to swap endianness
- * of a 32-bit integer.
+ * of a 32-bit integer. If the receiver is negative, raise `RangeError`.
  *
  * @example
  *   0xaabbccdd.bswap32.to_s(16) # => "ddccbbaa"
@@ -375,25 +375,28 @@ bnum_bswap16(VALUE bnum)
 static VALUE
 fnum_bswap32(VALUE fnum)
 {
-  long value;
+  long value = FIX2LONG(fnum);
+  if (value < 0)
+    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
 
-  if (SIZEOF_LONG == 4) {
+  if (SIZEOF_LONG == 4)
     /* the size of a Fixnum is always the same as 'long'
      * and the C standard guarantees 'long' is at least 32 bits
      * but a couple bits are used for tagging, so the usable precision could
      * be less than 32 bits...
      * That is why we have to use a '2NUM' function, not '2FIX' */
     return ULONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
-  } else {
-    value = FIX2LONG(fnum);
+  else
     return LONG2FIX((value & ~0xFFFFFFFFL) | __builtin_bswap32(value));
-  }
 }
 
 static VALUE
 bnum_bswap32(VALUE bnum)
 {
-  return modify_lo32_in_bignum(bnum, __builtin_bswap32(*RBIGNUM_DIGITS(bnum)));
+  if (RBIGNUM_POSITIVE_P(bnum))
+    return modify_lo32_in_bignum(bnum, __builtin_bswap32(*RBIGNUM_DIGITS(bnum)));
+  else
+    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
 }
 
 /* Document-method: Fixnum#bswap64
