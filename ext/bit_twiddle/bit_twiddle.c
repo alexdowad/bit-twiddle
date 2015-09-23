@@ -204,6 +204,9 @@ modify_lo64_in_bignum(VALUE bnum, uint64_t lo64)
 /* Document-method: Fixnum#popcount
  * Document-method: Bignum#popcount
  * Return the number of 1 bits in this integer.
+ *
+ * If the receiver is negative, raise `RangeError`.
+ *
  * @example
  *   7.popcount   # => 3
  *   255.popcount # => 8
@@ -214,7 +217,7 @@ fnum_popcount(VALUE fnum)
 {
   long value = FIX2LONG(fnum);
   if (value < 0)
-    value = -value;
+    rb_raise(rb_eRangeError, "can't take popcount of a negative number");
   return LONG2FIX(__builtin_popcountl(value));
 }
 
@@ -224,6 +227,9 @@ bnum_popcount(VALUE bnum)
   BDIGIT *digits = RBIGNUM_DIGITS(bnum);
   size_t  length = RBIGNUM_LEN(bnum);
   long    bits   = 0;
+
+  if (RBIGNUM_NEGATIVE_P(bnum))
+    rb_raise(rb_eRangeError, "can't take popcount of a negative number");
 
   while (length--) {
     bits += popcount_bdigit(*digits);

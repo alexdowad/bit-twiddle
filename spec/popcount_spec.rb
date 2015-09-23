@@ -26,10 +26,10 @@ describe "#popcount" do
     end
   end
 
-  it "returns the same for negative numbers as for their absolute values" do
+  it "raises a RangeError for negative numbers" do
     0.upto(100) do |n|
       num = -2 ** n
-      expect(num.popcount).to eq num.abs.popcount
+      expect { num.popcount }.to raise_error(RangeError)
     end
   end
 end
