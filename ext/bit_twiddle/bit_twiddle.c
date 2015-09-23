@@ -292,7 +292,10 @@ bnum_lo_bit(VALUE bnum)
 /* Document-method: Fixnum#hi_bit
  * Document-method: Bignum#hi_bit
  * Return the index of the highest 1 bit, where the least-significant bit is index 1.
- * If this integer is 0, return 0.
+ * If the receiver is 0, return 0.
+ *
+ * If the receiver is negative, raise `RangeError`.
+ *
  * @example
  *   1.hi_bit   # => 1
  *   255.hi_bit # => 8
@@ -305,7 +308,7 @@ fnum_hi_bit(VALUE fnum)
   if (fnum == fix_zero) return fix_zero;
   value = FIX2LONG(fnum);
   if (value < 0)
-    value = -value;
+    rb_raise(rb_eRangeError, "can't find highest 1 bit in a negative number");
   bits = __builtin_clzl(value);
   return LONG2FIX((sizeof(long) * 8) - bits);
 }
@@ -315,6 +318,9 @@ bnum_hi_bit(VALUE bnum)
 {
   BDIGIT *digit = RBIGNUM_DIGITS(bnum) + (RBIGNUM_LEN(bnum)-1);
   long    bits  = (sizeof(BDIGIT) * 8) * RBIGNUM_LEN(bnum);
+
+  if (RBIGNUM_NEGATIVE_P(bnum))
+    rb_raise(rb_eRangeError, "can't find highest 1 bit in a negative number");
 
   while (!*digit) {
     digit--;

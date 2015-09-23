@@ -21,10 +21,10 @@ describe "#hi_bit" do
     expect(0.hi_bit).to eq 0
   end
 
-  it "returns the same for negative numbers as for their absolute values" do
+  it "raises a RangeError for negative numbers" do
     0.upto(100) do |n|
       num = -2 ** n
-      expect(num.hi_bit).to eq num.abs.hi_bit
+      expect { num.hi_bit }.to raise_error(RangeError)
     end
   end
 end
