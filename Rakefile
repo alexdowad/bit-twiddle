@@ -17,7 +17,6 @@ end
 def benchmarks
   Dir[ROOT + '/bench/*_bench.rb']
 end
-
 def bench_task_name(file_name)
   file_name.sub(ROOT+'/', '').sub(/\_bench.rb$/, '').to_s.tr('/', ':')
 end
@@ -36,5 +35,27 @@ end
 
 desc "Run all benchmarks"
 task bench: benchmarks.map(&method(:bench_task_name))
+
+desc "Perform static analysis on C code to look for possible bugs"
+task :scanbuild => [:clean] do
+  # Show output at console, but also capture it
+  result = []
+  r,w = IO.pipe
+  pid = Process.fork do
+    $stdout.reopen(w)
+    r.close
+    exec("scan-build rake compile")
+  end
+  w.close
+  r.each do |line|
+    result << line if line =~ /^scan-build:/
+    puts line
+  end
+  Process.wait(pid)
+
+  if result.last =~ /Run 'scan-view ([^']*)' to examine bug reports/
+    exec "scan-view #{$1}"
+  end
+end
 
 task default: [:compile, :spec]

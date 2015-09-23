@@ -2,6 +2,11 @@ require 'mkmf'
 
 dir = File.dirname(__FILE__)
 
+# allow 'CC' env variable to override the compiler used
+if ENV['CC']
+  RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC']
+end
+
 $CFLAGS << ' -Wall -Werror -O3 -march=native -mtune=native '
 
 if RUBY_VERSION < '2.2.0'
