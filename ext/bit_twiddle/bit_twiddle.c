@@ -334,6 +334,9 @@ bnum_hi_bit(VALUE bnum)
 /* Document-method: Fixnum#bswap16
  * Document-method: Bignum#bswap16
  * Reverse the least-significant and second least-significant bytes of this integer.
+ *
+ * If the receiver is negative, raise `RangeError`.
+ *
  * @example
  *   0xFF00.bswap16 # => 255
  *   0x00FF.bswap16 # => 65280
@@ -343,16 +346,18 @@ static VALUE
 fnum_bswap16(VALUE fnum)
 {
   long value = FIX2LONG(fnum);
+  if (value < 0)
+    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
   return LONG2FIX((value & ~0xFFFF) | __builtin_bswap16(value));
 }
 
 static VALUE
 bnum_bswap16(VALUE bnum)
 {
-  VALUE  result = rb_big_clone(bnum);
-  BDIGIT value  = *RBIGNUM_DIGITS(bnum);
-  *RBIGNUM_DIGITS(result) = (value & ~0xFFFF) | __builtin_bswap16(value);
-  return result;
+  if (RBIGNUM_POSITIVE_P(bnum))
+    return modify_lo16_in_bignum(bnum, __builtin_bswap16(*RBIGNUM_DIGITS(bnum)));
+  else
+    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
 }
 
 /* Document-method: Fixnum#bswap32

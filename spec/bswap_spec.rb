@@ -27,6 +27,13 @@ describe "#bswap16" do
       expect((huge & 0xFF00) >> 8).to eq (swapped & 0xFF)
     end
   end
+
+  it "raises RangeError if called on a negative integer" do
+    0.upto(100) do |n|
+      num = -2 ** n
+      expect { num.bswap16 }.to raise_error(RangeError)
+    end
+  end
 end
 
 describe "#bswap32" do
