@@ -262,7 +262,10 @@ str_popcount(VALUE str)
 /* Document-method: Fixnum#lo_bit
  * Document-method: Bignum#lo_bit
  * Return the index of the lowest 1 bit, where the least-significant bit is index 1.
- * If this integer is 0, return 0.
+ * If the receiver is 0, return 0.
+ *
+ * If the receiver is negative, raise `RangeError`.
+ *
  * @example
  *   1.lo_bit   # => 1
  *   128.lo_bit # => 8
@@ -271,7 +274,18 @@ str_popcount(VALUE str)
 static VALUE
 fnum_lo_bit(VALUE fnum)
 {
-  return LONG2FIX(__builtin_ffsl(FIX2LONG(fnum)));
+  /* We raise an error on a negative number because the internal representation
+   * used for negative numbers is different between Fixnum and Bignum, so the
+   * results would not be consistent (running a program on a different computer,
+   * or with a Ruby interpreter compiled by a different compiler, could yield
+   * different results.)
+   * The alternative would be to _pretend_ that both Fixnums/Bignums use 2's
+   * complement notation and compute the answer accordingly.
+   * I don't think it's worth the trouble! */
+  long value = FIX2LONG(fnum);
+  if (value < 0)
+    rb_raise(rb_eRangeError, "can't find lowest 1 bit in a negative number");
+  return LONG2FIX(__builtin_ffsl(value));
 }
 
 static VALUE
@@ -279,6 +293,9 @@ bnum_lo_bit(VALUE bnum)
 {
   BDIGIT *digit = RBIGNUM_DIGITS(bnum);
   long    bits  = 0;
+
+  if (RBIGNUM_NEGATIVE_P(bnum))
+    rb_raise(rb_eRangeError, "can't find lowest 1 bit in a negative number");
 
   while (!*digit) {
     digit++;
