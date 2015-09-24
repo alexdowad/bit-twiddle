@@ -404,7 +404,7 @@ bnum_bswap32(VALUE bnum)
  * Reverse the least-significant 8 bytes of this integer.
  *
  * Does not reverse bits within each byte. This can be used to swap endianness
- * of a 64-bit integer.
+ * of a 64-bit integer. If the receiver is negative, raise `RangeError`.
  *
  * @example
  *   0xaabbccdd.bswap64.to_s(16) # => "ddccbbaa00000000"
@@ -414,13 +414,19 @@ bnum_bswap32(VALUE bnum)
 static VALUE
 fnum_bswap64(VALUE fnum)
 {
-  return ULL2NUM(__builtin_bswap64(FIX2LONG(fnum)));
+  long value = FIX2LONG(fnum);
+  if (value < 0)
+    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
+  return ULL2NUM(__builtin_bswap64(value));
 }
 
 static VALUE
 bnum_bswap64(VALUE bnum)
 {
-  return modify_lo64_in_bignum(bnum, __builtin_bswap64(load_64_from_bignum(bnum)));
+  if (RBIGNUM_POSITIVE_P(bnum))
+    return modify_lo64_in_bignum(bnum, __builtin_bswap64(load_64_from_bignum(bnum)));
+  else
+    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
 }
 
 #define def_rot_helpers(bits) \
