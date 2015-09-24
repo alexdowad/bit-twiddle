@@ -32,6 +32,13 @@ describe "#bitreverse8" do
         expect(((1 << 80) + a).bitreverse8).to eq ((1 << 80) + b)
       end
     end
+
+    it "raises a RangeError for negative numbers" do
+      0.upto(100) do |n|
+        num = -2 ** n
+        expect { num.bitreverse8 }.to raise_error(RangeError)
+      end
+    end
   end
 end
 

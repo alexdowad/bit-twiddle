@@ -1179,6 +1179,8 @@ static inline uint64_t reverse64(uint64_t value)
  * Document-method: Bignum#bitreverse8
  * Reverse the low 8 bits in this integer.
  *
+ * If the receiver is negative, raise `RangeError`.
+ *
  * @example
  *   0b01101011.bitreverse8.to_s(2) # => "11010110"
  *
@@ -1188,12 +1190,16 @@ static VALUE
 fnum_bitreverse8(VALUE fnum)
 {
   long value = FIX2LONG(fnum);
+  if (value < 0)
+    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
   return LONG2FIX((value & ~0xFFL) | reverse8(value));
 }
 
 static VALUE
 bnum_bitreverse8(VALUE bnum)
 {
+  if (RBIGNUM_NEGATIVE_P(bnum))
+    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
   return modify_lo8_in_bignum(bnum, reverse8(*RBIGNUM_DIGITS(bnum)));
 }
 
