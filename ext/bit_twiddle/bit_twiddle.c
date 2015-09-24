@@ -321,13 +321,12 @@ bnum_lo_bit(VALUE bnum)
 static VALUE
 fnum_hi_bit(VALUE fnum)
 {
-  long bits, value;
-  if (fnum == fix_zero) return fix_zero;
-  value = FIX2LONG(fnum);
-  if (value < 0)
+  long value = FIX2LONG(fnum);
+  if (value == 0)
+    return fix_zero;
+  else if (value < 0)
     rb_raise(rb_eRangeError, "can't find highest 1 bit in a negative number");
-  bits = __builtin_clzl(value);
-  return LONG2FIX((sizeof(long) * 8) - bits);
+  return LONG2FIX((sizeof(long) * 8) - __builtin_clzl(value));
 }
 
 static VALUE
