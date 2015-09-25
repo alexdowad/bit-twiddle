@@ -7,7 +7,7 @@ if ENV['CC']
   RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC']
 end
 
-$CFLAGS << ' -Wall -Werror -O3 -march=native -mtune=native '
+$CFLAGS << ' -Wall -Werror -O3 -march=native -mtune=native -std=c99 '
 
 if RUBY_ENGINE == 'rbx'
   raise "bit-twiddle does not support Rubinius. Sorry!"
