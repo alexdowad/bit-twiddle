@@ -1446,6 +1446,9 @@ void Init_bit_twiddle(void)
    * @example
    *   BitTwiddle.popcount(7)   # => 3
    *   BitTwiddle.popcount(255) # => 8
+   *
+   * If `int` is negative, raise `RangeError`.
+   *
    * @param int [Integer] The integer to operate on
    * @return [Fixnum]
    */
@@ -1455,6 +1458,9 @@ void Init_bit_twiddle(void)
    * @example
    *   BitTwiddle.lo_bit(1)   # => 1
    *   BitTwiddle.lo_bit(128) # => 8
+   *
+   * If `int` is negative, raise `RangeError`.
+   *
    * @param int [Integer] The integer to operate on
    * @return [Fixnum]
    */
@@ -1464,6 +1470,9 @@ void Init_bit_twiddle(void)
    * @example
    *   BitTwiddle.hi_bit(1)   # => 1
    *   BitTwiddle.hi_bit(255) # => 8
+   *
+   * If `int` is negative, raise `RangeError`.
+   *
    * @param int [Integer] The integer to operate on
    * @return [Fixnum]
    */
@@ -1472,6 +1481,9 @@ void Init_bit_twiddle(void)
    * @example
    *   BitTwiddle.bswap16(0xFF00) # => 255
    *   BitTwiddle.bswap16(0x00FF) # => 65280
+   *
+   * If `int` is negative, raise `RangeError`.
+   *
    * @param int [Integer] The integer to operate on
    * @return [Integer]
    */
@@ -1484,6 +1496,8 @@ void Init_bit_twiddle(void)
    * @example
    *   BitTwiddle.bswap32(0xaabbccdd).to_s(16) # => "ddccbbaa"
    *
+   * If `int` is negative, raise `RangeError`.
+   *
    * @param int [Integer] The integer to operate on
    * @return [Integer]
    */
@@ -1495,6 +1509,8 @@ void Init_bit_twiddle(void)
    *
    * @example
    *   BitTwiddle.bswap64(0xaabbccdd).to_s(16) # => "ddccbbaa00000000"
+   *
+   * If `int` is negative, raise `RangeError`.
    *
    * @param int [Integer] The integer to operate on
    * @return [Integer]
@@ -1793,6 +1809,8 @@ void Init_bit_twiddle(void)
    * @example
    *   BitTwiddle.bitreverse8(0b01101011).to_s(2) # => "11010110"
    *
+   * If `int` is negative, raise `RangeError`.
+   *
    * @param int [Integer] The integer to operate on
    * @return [Integer]
    */
@@ -1801,6 +1819,8 @@ void Init_bit_twiddle(void)
    *
    * @example
    *   BitTwiddle.bitreverse16(0b0110101100001011).to_s(2) # => "1101000011010110"
+   *
+   * If `int` is negative, raise `RangeError`.
    *
    * @param int [Integer] The integer to operate on
    * @return [Integer]
@@ -1811,6 +1831,8 @@ void Init_bit_twiddle(void)
    * @example
    *   BitTwiddle.bitreverse32(0x12341234).to_s(16) # => "2c482c48"
    *
+   * If `int` is negative, raise `RangeError`.
+   *
    * @param int [Integer] The integer to operate on
    * @return [Integer]
    */
@@ -1819,6 +1841,8 @@ void Init_bit_twiddle(void)
    *
    * @example
    *   BitTwiddle.bitreverse64(0xabcd1234abcd1234).to_s(16) # => "2c48b3d52c48b3d5"
+   *
+   * If `int` is negative, raise `RangeError`.
    *
    * @param int [Integer] The integer to operate on
    * @return [Integer]
