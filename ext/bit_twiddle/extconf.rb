@@ -9,7 +9,9 @@ end
 
 $CFLAGS << ' -Wall -Werror -O3 -march=native -mtune=native '
 
-if RUBY_VERSION < '2.2.0'
+if RUBY_ENGINE == 'rbx'
+  raise "bit-twiddle does not support Rubinius. Sorry!"
+elsif RUBY_VERSION < '2.2.0'
   check_sizeof 'BDIGIT'
   $CFLAGS << " -I#{File.join(dir, 'ruby21')} "
 else
