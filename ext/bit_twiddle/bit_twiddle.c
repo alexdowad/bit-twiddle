@@ -1191,7 +1191,7 @@ fnum_bitreverse8(VALUE fnum)
 {
   long value = FIX2LONG(fnum);
   if (value < 0)
-    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
+    rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
   return LONG2FIX((value & ~0xFFL) | reverse8(value));
 }
 
@@ -1199,7 +1199,7 @@ static VALUE
 bnum_bitreverse8(VALUE bnum)
 {
   if (RBIGNUM_NEGATIVE_P(bnum))
-    rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
+    rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
   return modify_lo8_in_bignum(bnum, reverse8(*RBIGNUM_DIGITS(bnum)));
 }
 
