@@ -32,12 +32,12 @@ describe "#bitreverse8" do
         expect(((1 << 80) + a).bitreverse8).to eq ((1 << 80) + b)
       end
     end
+  end
 
-    it "raises a RangeError for negative numbers" do
-      0.upto(100) do |n|
-        num = -2 ** n
-        expect { num.bitreverse8 }.to raise_error(RangeError)
-      end
+  it "raises a RangeError for negative numbers" do
+    0.upto(100) do |n|
+      num = -2 ** n
+      expect { num.bitreverse8 }.to raise_error(RangeError)
     end
   end
 end
@@ -77,6 +77,13 @@ describe "#bitreverse16" do
       end
     end
   end
+
+  it "raises a RangeError for negative numbers" do
+    0.upto(100) do |n|
+      num = -2 ** n
+      expect { num.bitreverse16 }.to raise_error(RangeError)
+    end
+  end
 end
 
 describe "#bitreverse32" do
@@ -114,6 +121,13 @@ describe "#bitreverse32" do
       end
     end
   end
+
+  it "raises a RangeError for negative numbers" do
+    0.upto(100) do |n|
+      num = -2 ** n
+      expect { num.bitreverse32 }.to raise_error(RangeError)
+    end
+  end
 end
 
 describe "#bitreverse64" do
@@ -143,6 +157,13 @@ describe "#bitreverse64" do
       it "returns #{bits.reverse.to_i(2)}" do
         expect(bits.to_i(2).bitreverse64).to eq bits.reverse.to_i(2)
       end
+    end
+  end
+
+  it "raises a RangeError for negative numbers" do
+    0.upto(100) do |n|
+      num = -2 ** n
+      expect { num.bitreverse64 }.to raise_error(RangeError)
     end
   end
 end

@@ -1207,6 +1207,8 @@ bnum_bitreverse8(VALUE bnum)
  * Document-method: Bignum#bitreverse16
  * Reverse the low 16 bits in this integer.
  *
+ * If the receiver is negative, raise `RangeError`.
+ *
  * @example
  *   0b0110101100001011.bitreverse16.to_s(2) # => "1101000011010110"
  *
@@ -1216,18 +1218,24 @@ static VALUE
 fnum_bitreverse16(VALUE fnum)
 {
   long value = FIX2LONG(fnum);
+  if (value < 0)
+    rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
   return LONG2FIX((value & ~0xFFFFL) | reverse16(value));
 }
 
 static VALUE
 bnum_bitreverse16(VALUE bnum)
 {
+  if (RBIGNUM_NEGATIVE_P(bnum))
+    rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
   return modify_lo16_in_bignum(bnum, reverse16(*RBIGNUM_DIGITS(bnum)));
 }
 
 /* Document-method: Fixnum#bitreverse32
  * Document-method: Bignum#bitreverse32
  * Reverse the low 32 bits in this integer.
+ *
+ * If the receiver is negative, raise `RangeError`.
  *
  * @example
  *   0x12341234.bitreverse32.to_s(16) # => "2c482c48"
@@ -1239,7 +1247,9 @@ fnum_bitreverse32(VALUE fnum)
 {
   long     value = FIX2LONG(fnum);
   uint32_t lo32  = value;
-  if (SIZEOF_LONG == 4)
+  if (value < 0)
+    rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
+  else if (SIZEOF_LONG == 4)
     return ULONG2NUM(reverse32(lo32));
   else
     return LONG2FIX((value & ~0xFFFFFFFFL) | reverse32(lo32));
@@ -1248,12 +1258,16 @@ fnum_bitreverse32(VALUE fnum)
 static VALUE
 bnum_bitreverse32(VALUE bnum)
 {
+  if (RBIGNUM_NEGATIVE_P(bnum))
+    rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
   return modify_lo32_in_bignum(bnum, reverse32(*RBIGNUM_DIGITS(bnum)));
 }
 
 /* Document-method: Fixnum#bitreverse64
  * Document-method: Bignum#bitreverse64
  * Reverse the low 64 bits in this integer.
+ *
+ * If the receiver is negative, raise `RangeError`.
  *
  * @example
  *   0xabcd1234abcd1234.bitreverse64.to_s(16) # => "2c48b3d52c48b3d5"
@@ -1263,13 +1277,17 @@ bnum_bitreverse32(VALUE bnum)
 static VALUE
 fnum_bitreverse64(VALUE fnum)
 {
-  /* on a 32-bit system, do we want sign extension of a negative 32-bit value into 64 bits??? */
-  return ULL2NUM(reverse64(FIX2ULONG(fnum)));
+  long value = FIX2LONG(fnum);
+  if (value < 0)
+    rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
+  return ULL2NUM(reverse64(value));
 }
 
 static VALUE
 bnum_bitreverse64(VALUE bnum)
 {
+  if (RBIGNUM_NEGATIVE_P(bnum))
+    rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
   return modify_lo64_in_bignum(bnum, reverse64(load_64_from_bignum(bnum)));
 }
 
