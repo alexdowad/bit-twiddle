@@ -14,8 +14,10 @@ if RUBY_ENGINE == 'rbx'
 elsif RUBY_VERSION < '2.2.0'
   check_sizeof 'BDIGIT'
   $CFLAGS << " -I#{File.join(dir, 'ruby21')} "
-else
+elsif RUBY_VERSION < '2.3.0'
   $CFLAGS << " -I#{File.join(dir, 'ruby22')} "
+else
+  $CFLAGS << " -I#{File.join(dir, 'ruby23')} "
 end
 
 check_sizeof 'short'
