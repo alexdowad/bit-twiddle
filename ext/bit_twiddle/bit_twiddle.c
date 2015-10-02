@@ -1,3 +1,6 @@
+/* Fast C implementation of additional bitwise operations for Ruby
+ * Hand-crafted with ♥ by Alex Dowad, using ONLY the finest 1s and 0s */
+
 #include <ruby.h>
 #include "bt_bignum.h"
 
