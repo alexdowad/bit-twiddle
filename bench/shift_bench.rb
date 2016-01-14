@@ -13,28 +13,28 @@ Benchmark.ips do |b|
   b.report "#lshift32 on 32-bit Fixnum, small shift (x1000)" do |n|
     n.times { dwords.each { |x| x.lshift32(16) }}
   end
-  # b.report "#<< on 32-bit Fixnum, small shift (x1000)" do |n|
-  #   n.times { dwords.each { |x| x << 16 }}
-  # end
+  b.report "(int << shift) & 0xFFFFFFFF on 32-bit Fixnum, small shift (x1000)" do |n|
+    n.times { dwords.each { |x| (x << 16) & 0xFFFFFFFF }}
+  end
   b.report "#lshift32 on 32-bit Fixnum, large shift (x1000)" do |n|
     n.times { dwords.each { |x| x.lshift32(32) }}
   end
-  # b.report "#<< on 32-bit Fixnum, large shift (x1000)" do |n|
-  #   n.times { dwords.each { |x| x << 32 }}
-  # end
+  b.report "(int << shift) & 0xFFFFFFFF on 32-bit Fixnum, large shift (x1000)" do |n|
+    n.times { dwords.each { |x| (x << 32) & 0xFFFFFFFF }}
+  end
 
   b.report "#rshift32 on 32-bit Fixnum, small shift (x1000)" do |n|
     n.times { dwords.each { |x| x.rshift32(16) }}
   end
-  # b.report "#>> on 32-bit Fixnum, small shift (x1000)" do |n|
-  #   n.times { dwords.each { |x| x >> 16 }}
-  # end
+  b.report "(int >> shift) & 0xFFFFFFFF on 32-bit Fixnum, small shift (x1000)" do |n|
+    n.times { dwords.each { |x| (x >> 16) & 0xFFFFFFFF }}
+  end
   b.report "#rshift32 on 32-bit Fixnum, large shift (x1000)" do |n|
     n.times { dwords.each { |x| x.rshift32(32) }}
   end
-  # b.report "#>> on 32-bit Fixnum, large shift (x1000)" do |n|
-  #   n.times { dwords.each { |x| x >> 32 }}
-  # end
+  b.report "(int >> shift) & 0xFFFFFFFF on 32-bit Fixnum, large shift (x1000)" do |n|
+    n.times { dwords.each { |x| (x >> 32) & 0xFFFFFFFF }}
+  end
 
   b.report "#arith_rshift32 on 32-bit Fixnum, small shift (x1000)" do |n|
     n.times { dwords.each { |x| x.arith_rshift32(16) }}
