@@ -1,3 +1,5 @@
+require 'bit-twiddle/core_ext'
+
 MASK_30 = (1 << 30) - 1
 MASK_62 = (1 << 62) - 1
 dwords = 1000.times.collect { |n| n.hash & MASK_30 }
