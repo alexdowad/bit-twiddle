@@ -1,6 +1,6 @@
-MASK_32 = (1 << 32) - 1
+MASK_30 = (1 << 30) - 1
 MASK_62 = (1 << 62) - 1
-dwords = 1000.times.collect { |n| n.hash & MASK_32 }
+dwords = 1000.times.collect { |n| n.hash & MASK_30 }
 qwords = 1000.times.collect { |n| n.hash & MASK_62 }
 bnums  = 1000.times.collect { |n| n.hash << 16 }
 
