@@ -1,4 +1,5 @@
-#Fast bitwise operations for Ruby
+Fast bitwise operations for Ruby
+================================
 
 Ruby has built-in implementations of the "workhorses" of bit manipulation: bitwise AND, OR, NOT, and XOR operations and bit shifts. This library adds more bitwise operations, which may be useful in implementing some algorithms. All the added operations are implemented in optimized C code (so this is MRI-only). All operations on integers are implemented for both `Fixnum`s and `Bignum`s.
 
