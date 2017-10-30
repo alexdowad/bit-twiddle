@@ -13,9 +13,9 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = ">= 2.2.8"
 
-  s.add_development_dependency "rspec", "~> 3.3"
-  s.add_development_dependency "rake",  "~> 10.4"
+  s.add_development_dependency "rspec", "~> 3.7"
+  s.add_development_dependency "rake",  "~> 12.2"
   s.add_development_dependency "rake-compiler", "~> 0.9"
-  s.add_development_dependency "benchmark-ips", "~> 2.3"
-  s.add_development_dependency "yard", "~> 0.8"
+  s.add_development_dependency "benchmark-ips", "~> 2.7"
+  s.add_development_dependency "yard", "~> 0.9"
 end
