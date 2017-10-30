@@ -11,6 +11,8 @@ Gem::Specification.new do |s|
   s.homepage    = 'http://github.com/alexdowad/bit-twiddle'
   s.license     = 'None (Public Domain)'
 
+  s.required_ruby_version = ">= 2.2.8"
+
   s.add_development_dependency "rspec", "~> 3.3"
   s.add_development_dependency "rake",  "~> 10.4"
   s.add_development_dependency "rake-compiler", "~> 0.9"
