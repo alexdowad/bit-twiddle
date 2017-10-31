@@ -24,11 +24,11 @@
 #endif
 
 #if SIZEOF_BDIGIT < 4
-#error "Sorry, Bignum#bswap32 and Bignum#arith_rshift32 will not work if sizeof(BDIGIT) < 4. Please report this error."
+#error "Sorry, Integer#bswap32 and Integer#arith_rshift32 will not work if sizeof(BDIGIT) < 4. Please report this error."
 #elif SIZEOF_BDIGIT > 8
 #error "Sorry, several methods will not work if sizeof(BDIGIT) > 8. Please report this error."
 #elif SIZEOF_LONG > 8
-#error "Sorry, Fixnum#arith_rshift64 will not work if sizeof(long) > 8. Please report this error."
+#error "Sorry, Integer#arith_rshift64 will not work if sizeof(long) > 8. Please report this error."
 #endif
 
 #if HAVE_BSWAP16 == 0
@@ -204,17 +204,23 @@ modify_lo64_in_bignum(VALUE bnum, uint64_t lo64)
   return result;
 }
 
-/* Document-method: Fixnum#popcount
- * Document-method: Bignum#popcount
- * Return the number of 1 bits in this integer.
- *
- * If the receiver is negative, raise `RangeError`.
- *
- * @example
- *   7.popcount   # => 3
- *   255.popcount # => 8
- * @return [Fixnum]
- */
+/* Now start defining implementations of actual Ruby methods
+ * First two helper macros: */
+#define def_int_method(name) \
+  static VALUE int_ ## name(VALUE integer) { \
+    if (FIXNUM_P(integer)) \
+      return fnum_ ## name(integer); \
+    else \
+      return bnum_ ## name(integer); \
+  }
+#define def_int_method_with_arg(name) \
+  static VALUE int_ ## name(VALUE integer, VALUE arg) { \
+    if (FIXNUM_P(integer)) \
+      return fnum_ ## name(integer, arg); \
+    else \
+      return bnum_ ## name(integer, arg); \
+  }
+
 static VALUE
 fnum_popcount(VALUE fnum)
 {
@@ -242,6 +248,18 @@ bnum_popcount(VALUE bnum)
   return LONG2FIX(bits);
 }
 
+/* Document-method: Integer#popcount
+ * Return the number of 1 bits in this integer.
+ *
+ * If the receiver is negative, raise `RangeError`.
+ *
+ * @example
+ *   7.popcount   # => 3
+ *   255.popcount # => 8
+ * @return [Fixnum]
+ */
+def_int_method(popcount);
+
 /* Return the number of 1 bits in all the bytes of this `String`.
  * @example
  *   "abc".popcount # => 10
@@ -262,18 +280,6 @@ str_popcount(VALUE str)
   return LONG2FIX(bits);
 }
 
-/* Document-method: Fixnum#lo_bit
- * Document-method: Bignum#lo_bit
- * Return the index of the lowest 1 bit, where the least-significant bit is index 1.
- * If the receiver is 0, return 0.
- *
- * If the receiver is negative, raise `RangeError`.
- *
- * @example
- *   1.lo_bit   # => 1
- *   128.lo_bit # => 8
- * @return [Fixnum]
- */
 static VALUE
 fnum_lo_bit(VALUE fnum)
 {
@@ -309,18 +315,19 @@ bnum_lo_bit(VALUE bnum)
   return LONG2FIX(bits);
 }
 
-/* Document-method: Fixnum#hi_bit
- * Document-method: Bignum#hi_bit
- * Return the index of the highest 1 bit, where the least-significant bit is index 1.
+/* Document-method: Integer#lo_bit
+ * Return the index of the lowest 1 bit, where the least-significant bit is index 1.
  * If the receiver is 0, return 0.
  *
  * If the receiver is negative, raise `RangeError`.
  *
  * @example
- *   1.hi_bit   # => 1
- *   255.hi_bit # => 8
+ *   1.lo_bit   # => 1
+ *   128.lo_bit # => 8
  * @return [Fixnum]
  */
+def_int_method(lo_bit);
+
 static VALUE
 fnum_hi_bit(VALUE fnum)
 {
@@ -350,17 +357,19 @@ bnum_hi_bit(VALUE bnum)
   return LONG2FIX(bits);
 }
 
-/* Document-method: Fixnum#bswap16
- * Document-method: Bignum#bswap16
- * Reverse the least-significant and second least-significant bytes of this integer.
+/* Document-method: Integer#hi_bit
+ * Return the index of the highest 1 bit, where the least-significant bit is index 1.
+ * If the receiver is 0, return 0.
  *
  * If the receiver is negative, raise `RangeError`.
  *
  * @example
- *   0xFF00.bswap16 # => 255
- *   0x00FF.bswap16 # => 65280
- * @return [Integer]
+ *   1.hi_bit   # => 1
+ *   255.hi_bit # => 8
+ * @return [Fixnum]
  */
+def_int_method(hi_bit);
+
 static VALUE
 fnum_bswap16(VALUE fnum)
 {
@@ -379,18 +388,18 @@ bnum_bswap16(VALUE bnum)
     rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
 }
 
-/* Document-method: Fixnum#bswap32
- * Document-method: Bignum#bswap32
- * Reverse the least-significant 4 bytes of this integer.
+/* Document-method: Integer#bswap16
+ * Reverse the least-significant and second least-significant bytes of this integer.
  *
- * Does not reverse bits within each byte. This can be used to swap endianness
- * of a 32-bit integer. If the receiver is negative, raise `RangeError`.
+ * If the receiver is negative, raise `RangeError`.
  *
  * @example
- *   0xaabbccdd.bswap32.to_s(16) # => "ddccbbaa"
- *
+ *   0xFF00.bswap16 # => 255
+ *   0x00FF.bswap16 # => 65280
  * @return [Integer]
  */
+def_int_method(bswap16);
+
 static VALUE
 fnum_bswap32(VALUE fnum)
 {
@@ -418,18 +427,19 @@ bnum_bswap32(VALUE bnum)
     rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
 }
 
-/* Document-method: Fixnum#bswap64
- * Document-method: Bignum#bswap64
- * Reverse the least-significant 8 bytes of this integer.
+/* Document-method: Integer#bswap32
+ * Reverse the least-significant 4 bytes of this integer.
  *
  * Does not reverse bits within each byte. This can be used to swap endianness
- * of a 64-bit integer. If the receiver is negative, raise `RangeError`.
+ * of a 32-bit integer. If the receiver is negative, raise `RangeError`.
  *
  * @example
- *   0xaabbccdd.bswap64.to_s(16) # => "ddccbbaa00000000"
+ *   0xaabbccdd.bswap32.to_s(16) # => "ddccbbaa"
  *
  * @return [Integer]
  */
+def_int_method(bswap32);
+
 static VALUE
 fnum_bswap64(VALUE fnum)
 {
@@ -448,6 +458,19 @@ bnum_bswap64(VALUE bnum)
     rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
 }
 
+/* Document-method: Integer#bswap64
+ * Reverse the least-significant 8 bytes of this integer.
+ *
+ * Does not reverse bits within each byte. This can be used to swap endianness
+ * of a 64-bit integer. If the receiver is negative, raise `RangeError`.
+ *
+ * @example
+ *   0xaabbccdd.bswap64.to_s(16) # => "ddccbbaa00000000"
+ *
+ * @return [Integer]
+ */
+def_int_method(bswap64);
+
 #define def_rot_helpers(bits) \
   static inline uint##bits##_t rrot##bits(uint##bits##_t value, VALUE rotdist) { \
     ulong rotd = value_to_rotdist(rotdist, bits, bits-1); \
@@ -463,20 +486,6 @@ def_rot_helpers(16);
 def_rot_helpers(32);
 def_rot_helpers(64);
 
-/* Document-method: Fixnum#rrot8
- * Document-method: Bignum#rrot8
- * Right-rotation ("circular shift") of the low 8 bits in this integer.
- *
- * If the rotate distance is negative, the bit rotation will be to the left
- * instead.
- *
- * @example
- *   0b01110001.rrot8(1).to_s(2) # => "10111000"
- *   0b01110001.rrot8(3).to_s(2) # => "101110"
- *
- * @param rotdist [Integer] Number of bit positions to rotate by
- * @return [Integer]
- */
 static VALUE
 fnum_rrot8(VALUE fnum, VALUE rotdist)
 {
@@ -490,20 +499,21 @@ bnum_rrot8(VALUE bnum, VALUE rotdist)
   return modify_lo8_in_bignum(bnum, rrot8(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Document-method: Fixnum#rrot16
- * Document-method: Bignum#rrot16
- * Right-rotation ("circular shift") of the low 16 bits in this integer.
+/* Document-method: Integer#rrot8
+ * Right-rotation ("circular shift") of the low 8 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the left
  * instead.
  *
  * @example
- *   0b0111000101110001.rrot16(1).to_s(2) # => "1011100010111000"
- *   0b0111000101110001.rrot16(3).to_s(2) # => "10111000101110"
+ *   0b01110001.rrot8(1).to_s(2) # => "10111000"
+ *   0b01110001.rrot8(3).to_s(2) # => "101110"
  *
  * @param rotdist [Integer] Number of bit positions to rotate by
  * @return [Integer]
  */
+def_int_method_with_arg(rrot8);
+
 static VALUE
 fnum_rrot16(VALUE fnum, VALUE rotdist)
 {
@@ -517,19 +527,21 @@ bnum_rrot16(VALUE bnum, VALUE rotdist)
   return modify_lo16_in_bignum(bnum, rrot16(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Document-method: Fixnum#rrot32
- * Document-method: Bignum#rrot32
- * Right-rotation ("circular shift") of the low 32 bits in this integer.
+/* Document-method: Integer#rrot16
+ * Right-rotation ("circular shift") of the low 16 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the left
  * instead.
  *
  * @example
- *   0xaabbccdd.rrot32(4).to_s(16) # => "daabbccd"
+ *   0b0111000101110001.rrot16(1).to_s(2) # => "1011100010111000"
+ *   0b0111000101110001.rrot16(3).to_s(2) # => "10111000101110"
  *
  * @param rotdist [Integer] Number of bit positions to rotate by
  * @return [Integer]
  */
+def_int_method_with_arg(rrot16);
+
 static VALUE
 fnum_rrot32(VALUE fnum, VALUE rotdist)
 {
@@ -546,19 +558,20 @@ bnum_rrot32(VALUE bnum, VALUE rotdist)
   return modify_lo32_in_bignum(bnum, rrot32(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Document-method: Fixnum#rrot64
- * Document-method: Bignum#rrot64
- * Right-rotation ("circular shift") of the low 64 bits in this integer.
+/* Document-method: Integer#rrot32
+ * Right-rotation ("circular shift") of the low 32 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the left
  * instead.
  *
  * @example
- *   0x11223344aabbccdd.rrot64(4).to_s(16) # => "d11223344aabbccd"
+ *   0xaabbccdd.rrot32(4).to_s(16) # => "daabbccd"
  *
  * @param rotdist [Integer] Number of bit positions to rotate by
  * @return [Integer]
  */
+def_int_method_with_arg(rrot32);
+
 static VALUE
 fnum_rrot64(VALUE fnum, VALUE rotdist)
 {
@@ -571,20 +584,20 @@ bnum_rrot64(VALUE bnum, VALUE rotdist)
   return modify_lo64_in_bignum(bnum, rrot64(load_64_from_bignum(bnum), rotdist));
 }
 
-/* Document-method: Fixnum#lrot8
- * Document-method: Bignum#lrot8
- * Left-rotation ("circular shift") of the low 8 bits in this integer.
+/* Document-method: Integer#rrot64
+ * Right-rotation ("circular shift") of the low 64 bits in this integer.
  *
- * If the rotate distance is negative, the bit rotation will be to the right
+ * If the rotate distance is negative, the bit rotation will be to the left
  * instead.
  *
  * @example
- *   0b01110001.lrot8(1).to_s(2) # => "11100010"
- *   0b01110001.lrot8(3).to_s(2) # => "10001011"
+ *   0x11223344aabbccdd.rrot64(4).to_s(16) # => "d11223344aabbccd"
  *
  * @param rotdist [Integer] Number of bit positions to rotate by
  * @return [Integer]
  */
+def_int_method_with_arg(rrot64);
+
 static VALUE
 fnum_lrot8(VALUE fnum, VALUE rotdist)
 {
@@ -598,20 +611,21 @@ bnum_lrot8(VALUE bnum, VALUE rotdist)
   return modify_lo8_in_bignum(bnum, lrot8(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Document-method: Fixnum#lrot16
- * Document-method: Bignum#lrot16
- * Left-rotation ("circular shift") of the low 16 bits in this integer.
+/* Document-method: Integer#lrot8
+ * Left-rotation ("circular shift") of the low 8 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the right
  * instead.
  *
  * @example
- *   0b0111000101110001.lrot16(1).to_s(2) # => "1110001011100010"
- *   0b0111000101110001.lrot16(3).to_s(2) # => "1000101110001011"
+ *   0b01110001.lrot8(1).to_s(2) # => "11100010"
+ *   0b01110001.lrot8(3).to_s(2) # => "10001011"
  *
  * @param rotdist [Integer] Number of bit positions to rotate by
  * @return [Integer]
  */
+def_int_method_with_arg(lrot8);
+
 static VALUE
 fnum_lrot16(VALUE fnum, VALUE rotdist)
 {
@@ -625,19 +639,21 @@ bnum_lrot16(VALUE bnum, VALUE rotdist)
   return modify_lo16_in_bignum(bnum, lrot16(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Document-method: Fixnum#lrot32
- * Document-method: Bignum#lrot32
- * Left-rotation ("circular shift") of the low 32 bits in this integer.
+/* Document-method: Integer#lrot16
+ * Left-rotation ("circular shift") of the low 16 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the right
  * instead.
  *
  * @example
- *   0xaabbccdd.lrot32(4).to_s(16) # => "abbccdda"
+ *   0b0111000101110001.lrot16(1).to_s(2) # => "1110001011100010"
+ *   0b0111000101110001.lrot16(3).to_s(2) # => "1000101110001011"
  *
  * @param rotdist [Integer] Number of bit positions to rotate by
  * @return [Integer]
  */
+def_int_method_with_arg(lrot16);
+
 static VALUE
 fnum_lrot32(VALUE fnum, VALUE rotdist)
 {
@@ -651,19 +667,20 @@ bnum_lrot32(VALUE bnum, VALUE rotdist)
   return modify_lo32_in_bignum(bnum, lrot32(*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
-/* Document-method: Fixnum#lrot64
- * Document-method: Bignum#lrot64
- * Left-rotation ("circular shift") of the low 64 bits in this integer.
+/* Document-method: Integer#lrot32
+ * Left-rotation ("circular shift") of the low 32 bits in this integer.
  *
  * If the rotate distance is negative, the bit rotation will be to the right
  * instead.
  *
  * @example
- *   0x11223344aabbccdd.lrot64(4).to_s(16) # => "1223344aabbccdd1"
+ *   0xaabbccdd.lrot32(4).to_s(16) # => "abbccdda"
  *
  * @param rotdist [Integer] Number of bit positions to rotate by
  * @return [Integer]
  */
+def_int_method_with_arg(lrot32);
+
 static VALUE
 fnum_lrot64(VALUE fnum, VALUE rotdist)
 {
@@ -675,6 +692,20 @@ bnum_lrot64(VALUE bnum, VALUE rotdist)
 {
   return modify_lo64_in_bignum(bnum, lrot64(load_64_from_bignum(bnum), rotdist));
 }
+
+/* Document-method: Integer#lrot64
+ * Left-rotation ("circular shift") of the low 64 bits in this integer.
+ *
+ * If the rotate distance is negative, the bit rotation will be to the right
+ * instead.
+ *
+ * @example
+ *   0x11223344aabbccdd.lrot64(4).to_s(16) # => "1223344aabbccdd1"
+ *
+ * @param rotdist [Integer] Number of bit positions to rotate by
+ * @return [Integer]
+ */
+def_int_method_with_arg(lrot64);
 
 #define def_shift_helpers(bits) \
   static uint##bits##_t lshift##bits(uint##bits##_t value, VALUE shiftdist) { \
@@ -714,21 +745,6 @@ def_shift_helpers(16);
 def_shift_helpers(32);
 def_shift_helpers(64);
 
-/* Document-method: Fixnum#lshift8
- * Document-method: Bignum#lshift8
- * Left-shift of the low 8 bits in this integer.
- *
- * If the shift distance is negative, a right shift will be performed instead.
- * The vacated bit positions will be filled with 0 bits. If shift distance is
- * more than 7 or less than -7, the low 8 bits will all be zeroed.
- *
- * @example
- *   0x11223344.lshift8(1).to_s(16) # => "11223388"
- *   0x11223344.lshift8(2).to_s(16) # => "11223310"
- *
- * @param shiftdist [Integer] Number of bit positions to shift by
- * @return [Integer]
- */
 static VALUE
 fnum_lshift8(VALUE fnum, VALUE shiftdist)
 {
@@ -748,21 +764,22 @@ bnum_lshift8(VALUE bnum, VALUE shiftdist)
     return modify_lo8_in_bignum(bnum, lshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#lshift16
- * Document-method: Bignum#lshift16
- * Left-shift of the low 16 bits in this integer.
+/* Document-method: Integer#lshift8
+ * Left-shift of the low 8 bits in this integer.
  *
  * If the shift distance is negative, a right shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
- * more than 15 or less than -15, the low 16 bits will all be zeroed.
+ * more than 7 or less than -7, the low 8 bits will all be zeroed.
  *
  * @example
- *   0x11223344.lshift16(1).to_s(16) # => "11226688"
- *   0x11223344.lshift16(2).to_s(16) # => "1122cd10"
+ *   0x11223344.lshift8(1).to_s(16) # => "11223388"
+ *   0x11223344.lshift8(2).to_s(16) # => "11223310"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(lshift8);
+
 static VALUE
 fnum_lshift16(VALUE fnum, VALUE shiftdist)
 {
@@ -782,21 +799,22 @@ bnum_lshift16(VALUE bnum, VALUE shiftdist)
     return modify_lo16_in_bignum(bnum, lshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#lshift32
- * Document-method: Bignum#lshift32
- * Left-shift of the low 32 bits in this integer.
+/* Document-method: Integer#lshift16
+ * Left-shift of the low 16 bits in this integer.
  *
  * If the shift distance is negative, a right shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
- * more than 31 or less than -31, the low 32 bits will all be zeroed.
+ * more than 15 or less than -15, the low 16 bits will all be zeroed.
  *
  * @example
- *   0x11223344.lshift32(1).to_s(16) # => "22446688"
- *   0x11223344.lshift32(2).to_s(16) # => "4488cd10"
+ *   0x11223344.lshift16(1).to_s(16) # => "11226688"
+ *   0x11223344.lshift16(2).to_s(16) # => "1122cd10"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(lshift16);
+
 static VALUE
 fnum_lshift32(VALUE fnum, VALUE shiftdist)
 {
@@ -816,21 +834,22 @@ bnum_lshift32(VALUE bnum, VALUE shiftdist)
     return modify_lo32_in_bignum(bnum, lshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#lshift64
- * Document-method: Bignum#lshift64
- * Left-shift of the low 64 bits in this integer.
+/* Document-method: Integer#lshift32
+ * Left-shift of the low 32 bits in this integer.
  *
  * If the shift distance is negative, a right shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
- * more than 63 or less than -63, the low 64 bits will all be zeroed.
+ * more than 31 or less than -31, the low 32 bits will all be zeroed.
  *
  * @example
- *   0x1122334411223344.lshift64(1).to_s(16) # => "2244668822446688"
- *   0x1122334411223344.lshift64(2).to_s(16) # => "4488cd104488cd10"
+ *   0x11223344.lshift32(1).to_s(16) # => "22446688"
+ *   0x11223344.lshift32(2).to_s(16) # => "4488cd10"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(lshift32);
+
 static VALUE
 fnum_lshift64(VALUE fnum, VALUE shiftdist)
 {
@@ -855,21 +874,22 @@ bnum_lshift64(VALUE bnum, VALUE shiftdist)
     return modify_lo64_in_bignum(bnum, lshift64(load_64_from_bignum(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#rshift8
- * Document-method: Bignum#rshift8
- * Right-shift of the low 8 bits in this integer.
+/* Document-method: Integer#lshift64
+ * Left-shift of the low 64 bits in this integer.
  *
- * If the shift distance is negative, a left shift will be performed instead.
+ * If the shift distance is negative, a right shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
- * more than 7 or less than -7, the low 8 bits will all be zeroed.
+ * more than 63 or less than -63, the low 64 bits will all be zeroed.
  *
  * @example
- *   0x11223344.rshift8(1).to_s(16) # => "11223322"
- *   0x11223344.rshift8(2).to_s(16) # => "11223311"
+ *   0x1122334411223344.lshift64(1).to_s(16) # => "2244668822446688"
+ *   0x1122334411223344.lshift64(2).to_s(16) # => "4488cd104488cd10"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(lshift64);
+
 static VALUE
 fnum_rshift8(VALUE fnum, VALUE shiftdist)
 {
@@ -889,21 +909,22 @@ bnum_rshift8(VALUE bnum, VALUE shiftdist)
     return modify_lo8_in_bignum(bnum, rshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#rshift16
- * Document-method: Bignum#rshift16
- * Right-shift of the low 16 bits in this integer.
+/* Document-method: Integer#rshift8
+ * Right-shift of the low 8 bits in this integer.
  *
  * If the shift distance is negative, a left shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
- * more than 15 or less than -15, the low 16 bits will all be zeroed.
+ * more than 7 or less than -7, the low 8 bits will all be zeroed.
  *
  * @example
- *   0x11223344.rshift16(1).to_s(16) # => "112219a2"
- *   0x11223344.rshift16(2).to_s(16) # => "11220cd1"
+ *   0x11223344.rshift8(1).to_s(16) # => "11223322"
+ *   0x11223344.rshift8(2).to_s(16) # => "11223311"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(rshift8);
+
 static VALUE
 fnum_rshift16(VALUE fnum, VALUE shiftdist)
 {
@@ -923,21 +944,22 @@ bnum_rshift16(VALUE bnum, VALUE shiftdist)
     return modify_lo16_in_bignum(bnum, rshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#rshift32
- * Document-method: Bignum#rshift32
- * Right-shift of the low 32 bits in this integer.
+/* Document-method: Integer#rshift16
+ * Right-shift of the low 16 bits in this integer.
  *
  * If the shift distance is negative, a left shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
- * more than 31 or less than -31, the low 32 bits will all be zeroed.
+ * more than 15 or less than -15, the low 16 bits will all be zeroed.
  *
  * @example
- *   0x11223344.rshift32(1).to_s(16) # => "89119a2"
- *   0x11223344.rshift32(2).to_s(16) # => "4488cd1"
+ *   0x11223344.rshift16(1).to_s(16) # => "112219a2"
+ *   0x11223344.rshift16(2).to_s(16) # => "11220cd1"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(rshift16);
+
 static VALUE
 fnum_rshift32(VALUE fnum, VALUE shiftdist)
 {
@@ -957,21 +979,22 @@ bnum_rshift32(VALUE bnum, VALUE shiftdist)
     return modify_lo32_in_bignum(bnum, rshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#rshift64
- * Document-method: Bignum#rshift64
- * Right-shift of the low 64 bits in this integer.
+/* Document-method: Integer#rshift32
+ * Right-shift of the low 32 bits in this integer.
  *
  * If the shift distance is negative, a left shift will be performed instead.
  * The vacated bit positions will be filled with 0 bits. If shift distance is
- * more than 63 or less than -63, the low 64 bits will all be zeroed.
+ * more than 31 or less than -31, the low 32 bits will all be zeroed.
  *
  * @example
- *   0x1122334411223344.rshift64(1).to_s(16) # => "89119a2089119a2"
- *   0x1122334411223344.rshift64(2).to_s(16) # => "4488cd104488cd1"
+ *   0x11223344.rshift32(1).to_s(16) # => "89119a2"
+ *   0x11223344.rshift32(2).to_s(16) # => "4488cd1"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(rshift32);
+
 static VALUE
 fnum_rshift64(VALUE fnum, VALUE shiftdist)
 {
@@ -996,21 +1019,22 @@ bnum_rshift64(VALUE bnum, VALUE shiftdist)
     return modify_lo64_in_bignum(bnum, rshift64(load_64_from_bignum(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#arith_rshift8
- * Document-method: Bignum#arith_rshift8
- * Arithmetic right-shift of the low 8 bits in this integer.
+/* Document-method: Integer#rshift64
+ * Right-shift of the low 64 bits in this integer.
  *
- * If bit 8 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
- * they will be filled with 0s. Or, if the shift distance is negative, a left shift
- * will be performed instead, and the vacated bit positions will be filled with 0s.
+ * If the shift distance is negative, a left shift will be performed instead.
+ * The vacated bit positions will be filled with 0 bits. If shift distance is
+ * more than 63 or less than -63, the low 64 bits will all be zeroed.
  *
  * @example
- *   0xaabbccdd.arith_rshift8(1).to_s(16) # => "aabbccee"
- *   0xaabbccdd.arith_rshift8(2).to_s(16) # => "aabbccf7"
+ *   0x1122334411223344.rshift64(1).to_s(16) # => "89119a2089119a2"
+ *   0x1122334411223344.rshift64(2).to_s(16) # => "4488cd104488cd1"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(rshift64);
+
 static VALUE
 fnum_arith_rshift8(VALUE fnum, VALUE shiftdist)
 {
@@ -1030,21 +1054,22 @@ bnum_arith_rshift8(VALUE bnum, VALUE shiftdist)
     return modify_lo8_in_bignum(bnum, arith_rshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#arith_rshift16
- * Document-method: Bignum#arith_rshift16
- * Arithmetic right-shift of the low 16 bits in this integer.
+/* Document-method: Integer#arith_rshift8
+ * Arithmetic right-shift of the low 8 bits in this integer.
  *
- * If bit 16 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+ * If bit 8 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
  * they will be filled with 0s. Or, if the shift distance is negative, a left shift
  * will be performed instead, and the vacated bit positions will be filled with 0s.
  *
  * @example
- *   0xaabbccdd.arith_rshift16(1).to_s(16) # => "aabbe66e"
- *   0xaabbccdd.arith_rshift16(2).to_s(16) # => "aabbf337"
+ *   0xaabbccdd.arith_rshift8(1).to_s(16) # => "aabbccee"
+ *   0xaabbccdd.arith_rshift8(2).to_s(16) # => "aabbccf7"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(arith_rshift8);
+
 static VALUE
 fnum_arith_rshift16(VALUE fnum, VALUE shiftdist)
 {
@@ -1064,21 +1089,22 @@ bnum_arith_rshift16(VALUE bnum, VALUE shiftdist)
     return modify_lo16_in_bignum(bnum, arith_rshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#arith_rshift32
- * Document-method: Bignum#arith_rshift32
- * Arithmetic right-shift of the low 32 bits in this integer.
+/* Document-method: Integer#arith_rshift16
+ * Arithmetic right-shift of the low 16 bits in this integer.
  *
- * If bit 32 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+ * If bit 16 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
  * they will be filled with 0s. Or, if the shift distance is negative, a left shift
  * will be performed instead, and the vacated bit positions will be filled with 0s.
  *
  * @example
- *   0xaabbccddaabbccdd.arith_rshift32(1).to_s(16) # => "d55de66e"
- *   0xaabbccddaabbccdd.arith_rshift32(2).to_s(16) # => "eaaef337"
+ *   0xaabbccdd.arith_rshift16(1).to_s(16) # => "aabbe66e"
+ *   0xaabbccdd.arith_rshift16(2).to_s(16) # => "aabbf337"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(arith_rshift16);
+
 static VALUE
 fnum_arith_rshift32(VALUE fnum, VALUE shiftdist)
 {
@@ -1098,21 +1124,22 @@ bnum_arith_rshift32(VALUE bnum, VALUE shiftdist)
     return modify_lo32_in_bignum(bnum, arith_rshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
-/* Document-method: Fixnum#arith_rshift64
- * Document-method: Bignum#arith_rshift64
- * Arithmetic right-shift of the low 64 bits in this integer.
+/* Document-method: Integer#arith_rshift32
+ * Arithmetic right-shift of the low 32 bits in this integer.
  *
- * If bit 64 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+ * If bit 32 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
  * they will be filled with 0s. Or, if the shift distance is negative, a left shift
  * will be performed instead, and the vacated bit positions will be filled with 0s.
  *
  * @example
- *   0xaabbccddaabbccdd.arith_rshift64(1).to_s(16) # => "d55de66ed55de66e"
- *   0xaabbccddaabbccdd.arith_rshift64(2).to_s(16) # => "eaaef3376aaef337"
+ *   0xaabbccddaabbccdd.arith_rshift32(1).to_s(16) # => "d55de66e"
+ *   0xaabbccddaabbccdd.arith_rshift32(2).to_s(16) # => "eaaef337"
  *
  * @param shiftdist [Integer] Number of bit positions to shift by
  * @return [Integer]
  */
+def_int_method_with_arg(arith_rshift32);
+
 static VALUE
 fnum_arith_rshift64(VALUE fnum, VALUE shiftdist)
 {
@@ -1130,6 +1157,22 @@ bnum_arith_rshift64(VALUE bnum, VALUE shiftdist)
   else
     return modify_lo64_in_bignum(bnum, arith_rshift64(load_64_from_bignum(bnum), shiftdist));
 }
+
+/* Document-method: Integer#arith_rshift64
+ * Arithmetic right-shift of the low 64 bits in this integer.
+ *
+ * If bit 64 is a 1, the vacated bit positions will be filled with 1s. Otherwise,
+ * they will be filled with 0s. Or, if the shift distance is negative, a left shift
+ * will be performed instead, and the vacated bit positions will be filled with 0s.
+ *
+ * @example
+ *   0xaabbccddaabbccdd.arith_rshift64(1).to_s(16) # => "d55de66ed55de66e"
+ *   0xaabbccddaabbccdd.arith_rshift64(2).to_s(16) # => "eaaef3376aaef337"
+ *
+ * @param shiftdist [Integer] Number of bit positions to shift by
+ * @return [Integer]
+ */
+def_int_method_with_arg(arith_rshift64);
 
 static const uint8_t bitreverse_table[] =
 {
@@ -1178,17 +1221,6 @@ static inline uint64_t reverse64(uint64_t value)
   return ((uint64_t)reverse32(value) << 32) | reverse32(value >> 32);
 }
 
-/* Document-method: Fixnum#bitreverse8
- * Document-method: Bignum#bitreverse8
- * Reverse the low 8 bits in this integer.
- *
- * If the receiver is negative, raise `RangeError`.
- *
- * @example
- *   0b01101011.bitreverse8.to_s(2) # => "11010110"
- *
- * @return [Integer]
- */
 static VALUE
 fnum_bitreverse8(VALUE fnum)
 {
@@ -1206,17 +1238,18 @@ bnum_bitreverse8(VALUE bnum)
   return modify_lo8_in_bignum(bnum, reverse8(*RBIGNUM_DIGITS(bnum)));
 }
 
-/* Document-method: Fixnum#bitreverse16
- * Document-method: Bignum#bitreverse16
- * Reverse the low 16 bits in this integer.
+/* Document-method: Integer#bitreverse8
+ * Reverse the low 8 bits in this integer.
  *
  * If the receiver is negative, raise `RangeError`.
  *
  * @example
- *   0b0110101100001011.bitreverse16.to_s(2) # => "1101000011010110"
+ *   0b01101011.bitreverse8.to_s(2) # => "11010110"
  *
  * @return [Integer]
  */
+def_int_method(bitreverse8);
+
 static VALUE
 fnum_bitreverse16(VALUE fnum)
 {
@@ -1234,17 +1267,18 @@ bnum_bitreverse16(VALUE bnum)
   return modify_lo16_in_bignum(bnum, reverse16(*RBIGNUM_DIGITS(bnum)));
 }
 
-/* Document-method: Fixnum#bitreverse32
- * Document-method: Bignum#bitreverse32
- * Reverse the low 32 bits in this integer.
+/* Document-method: Integer#bitreverse16
+ * Reverse the low 16 bits in this integer.
  *
  * If the receiver is negative, raise `RangeError`.
  *
  * @example
- *   0x12341234.bitreverse32.to_s(16) # => "2c482c48"
+ *   0b0110101100001011.bitreverse16.to_s(2) # => "1101000011010110"
  *
  * @return [Integer]
  */
+def_int_method(bitreverse16);
+
 static VALUE
 fnum_bitreverse32(VALUE fnum)
 {
@@ -1266,17 +1300,18 @@ bnum_bitreverse32(VALUE bnum)
   return modify_lo32_in_bignum(bnum, reverse32(*RBIGNUM_DIGITS(bnum)));
 }
 
-/* Document-method: Fixnum#bitreverse64
- * Document-method: Bignum#bitreverse64
- * Reverse the low 64 bits in this integer.
+/* Document-method: Integer#bitreverse32
+ * Reverse the low 32 bits in this integer.
  *
  * If the receiver is negative, raise `RangeError`.
  *
  * @example
- *   0xabcd1234abcd1234.bitreverse64.to_s(16) # => "2c48b3d52c48b3d5"
+ *   0x12341234.bitreverse32.to_s(16) # => "2c482c48"
  *
  * @return [Integer]
  */
+def_int_method(bitreverse32);
+
 static VALUE
 fnum_bitreverse64(VALUE fnum)
 {
@@ -1294,13 +1329,20 @@ bnum_bitreverse64(VALUE bnum)
   return modify_lo64_in_bignum(bnum, reverse64(load_64_from_bignum(bnum)));
 }
 
-/* Document-class: Fixnum
- * Ruby's good old Fixnum.
+/* Document-method: Integer#bitreverse64
+ * Reverse the low 64 bits in this integer.
  *
- * `require "bit-twiddle/core_ext"` before trying to use any of the below methods.
+ * If the receiver is negative, raise `RangeError`.
+ *
+ * @example
+ *   0xabcd1234abcd1234.bitreverse64.to_s(16) # => "2c48b3d52c48b3d5"
+ *
+ * @return [Integer]
  */
-/* Document-class: Bignum
- * Ruby's good old Bignum.
+def_int_method(bitreverse64);
+
+/* Document-class: Integer
+ * Ruby's good old Integer.
  *
  * `require "bit-twiddle/core_ext"` before trying to use any of the below methods.
  */
@@ -1310,78 +1352,48 @@ bnum_bitreverse64(VALUE bnum)
  * `require "bit-twiddle/core_ext"` before trying to use any of the below methods.
  */
 
-/* Add all `bit-twiddle` methods directly to `Fixnum` and `Bignum`. */
+/* Add all `bit-twiddle` methods directly to `Integer`. */
 static void init_core_extensions()
 {
-  rb_define_method(rb_cFixnum, "popcount", fnum_popcount, 0);
-  rb_define_method(rb_cBignum, "popcount", bnum_popcount, 0);
+  rb_define_method(rb_cInteger, "popcount", int_popcount, 0);
   rb_define_method(rb_cString, "popcount", str_popcount,  0);
 
-  rb_define_method(rb_cFixnum, "lo_bit",   fnum_lo_bit, 0);
-  rb_define_method(rb_cBignum, "lo_bit",   bnum_lo_bit, 0);
-  rb_define_method(rb_cFixnum, "hi_bit",   fnum_hi_bit, 0);
-  rb_define_method(rb_cBignum, "hi_bit",   bnum_hi_bit, 0);
+  rb_define_method(rb_cInteger, "lo_bit",   int_lo_bit, 0);
+  rb_define_method(rb_cInteger, "hi_bit",   int_hi_bit, 0);
 
-  rb_define_method(rb_cFixnum, "bswap16",  fnum_bswap16, 0);
-  rb_define_method(rb_cBignum, "bswap16",  bnum_bswap16, 0);
-  rb_define_method(rb_cFixnum, "bswap32",  fnum_bswap32, 0);
-  rb_define_method(rb_cBignum, "bswap32",  bnum_bswap32, 0);
-  rb_define_method(rb_cFixnum, "bswap64",  fnum_bswap64, 0);
-  rb_define_method(rb_cBignum, "bswap64",  bnum_bswap64, 0);
+  rb_define_method(rb_cInteger, "bswap16",  int_bswap16, 0);
+  rb_define_method(rb_cInteger, "bswap32",  int_bswap32, 0);
+  rb_define_method(rb_cInteger, "bswap64",  int_bswap64, 0);
 
-  rb_define_method(rb_cFixnum, "rrot8",    fnum_rrot8,  1);
-  rb_define_method(rb_cBignum, "rrot8",    bnum_rrot8,  1);
-  rb_define_method(rb_cFixnum, "rrot16",   fnum_rrot16, 1);
-  rb_define_method(rb_cBignum, "rrot16",   bnum_rrot16, 1);
-  rb_define_method(rb_cFixnum, "rrot32",   fnum_rrot32, 1);
-  rb_define_method(rb_cBignum, "rrot32",   bnum_rrot32, 1);
-  rb_define_method(rb_cFixnum, "rrot64",   fnum_rrot64, 1);
-  rb_define_method(rb_cBignum, "rrot64",   bnum_rrot64, 1);
+  rb_define_method(rb_cInteger, "rrot8",    int_rrot8,  1);
+  rb_define_method(rb_cInteger, "rrot16",   int_rrot16, 1);
+  rb_define_method(rb_cInteger, "rrot32",   int_rrot32, 1);
+  rb_define_method(rb_cInteger, "rrot64",   int_rrot64, 1);
 
-  rb_define_method(rb_cFixnum, "lrot8",    fnum_lrot8,  1);
-  rb_define_method(rb_cBignum, "lrot8",    bnum_lrot8,  1);
-  rb_define_method(rb_cFixnum, "lrot16",   fnum_lrot16, 1);
-  rb_define_method(rb_cBignum, "lrot16",   bnum_lrot16, 1);
-  rb_define_method(rb_cFixnum, "lrot32",   fnum_lrot32, 1);
-  rb_define_method(rb_cBignum, "lrot32",   bnum_lrot32, 1);
-  rb_define_method(rb_cFixnum, "lrot64",   fnum_lrot64, 1);
-  rb_define_method(rb_cBignum, "lrot64",   bnum_lrot64, 1);
+  rb_define_method(rb_cInteger, "lrot8",    int_lrot8,  1);
+  rb_define_method(rb_cInteger, "lrot16",   int_lrot16, 1);
+  rb_define_method(rb_cInteger, "lrot32",   int_lrot32, 1);
+  rb_define_method(rb_cInteger, "lrot64",   int_lrot64, 1);
 
-  rb_define_method(rb_cFixnum, "lshift8",   fnum_lshift8,  1);
-  rb_define_method(rb_cBignum, "lshift8",   bnum_lshift8,  1);
-  rb_define_method(rb_cFixnum, "lshift16",  fnum_lshift16, 1);
-  rb_define_method(rb_cBignum, "lshift16",  bnum_lshift16, 1);
-  rb_define_method(rb_cFixnum, "lshift32",  fnum_lshift32, 1);
-  rb_define_method(rb_cBignum, "lshift32",  bnum_lshift32, 1);
-  rb_define_method(rb_cFixnum, "lshift64",  fnum_lshift64, 1);
-  rb_define_method(rb_cBignum, "lshift64",  bnum_lshift64, 1);
+  rb_define_method(rb_cInteger, "lshift8",   int_lshift8,  1);
+  rb_define_method(rb_cInteger, "lshift16",  int_lshift16, 1);
+  rb_define_method(rb_cInteger, "lshift32",  int_lshift32, 1);
+  rb_define_method(rb_cInteger, "lshift64",  int_lshift64, 1);
 
-  rb_define_method(rb_cFixnum, "rshift8",   fnum_rshift8,  1);
-  rb_define_method(rb_cBignum, "rshift8",   bnum_rshift8,  1);
-  rb_define_method(rb_cFixnum, "rshift16",  fnum_rshift16, 1);
-  rb_define_method(rb_cBignum, "rshift16",  bnum_rshift16, 1);
-  rb_define_method(rb_cFixnum, "rshift32",  fnum_rshift32, 1);
-  rb_define_method(rb_cBignum, "rshift32",  bnum_rshift32, 1);
-  rb_define_method(rb_cFixnum, "rshift64",  fnum_rshift64, 1);
-  rb_define_method(rb_cBignum, "rshift64",  bnum_rshift64, 1);
+  rb_define_method(rb_cInteger, "rshift8",   int_rshift8,  1);
+  rb_define_method(rb_cInteger, "rshift16",  int_rshift16, 1);
+  rb_define_method(rb_cInteger, "rshift32",  int_rshift32, 1);
+  rb_define_method(rb_cInteger, "rshift64",  int_rshift64, 1);
 
-  rb_define_method(rb_cFixnum, "arith_rshift8",  fnum_arith_rshift8,  1);
-  rb_define_method(rb_cBignum, "arith_rshift8",  bnum_arith_rshift8,  1);
-  rb_define_method(rb_cFixnum, "arith_rshift16", fnum_arith_rshift16, 1);
-  rb_define_method(rb_cBignum, "arith_rshift16", bnum_arith_rshift16, 1);
-  rb_define_method(rb_cFixnum, "arith_rshift32", fnum_arith_rshift32, 1);
-  rb_define_method(rb_cBignum, "arith_rshift32", bnum_arith_rshift32, 1);
-  rb_define_method(rb_cFixnum, "arith_rshift64", fnum_arith_rshift64, 1);
-  rb_define_method(rb_cBignum, "arith_rshift64", bnum_arith_rshift64, 1);
+  rb_define_method(rb_cInteger, "arith_rshift8",  int_arith_rshift8,  1);
+  rb_define_method(rb_cInteger, "arith_rshift16", int_arith_rshift16, 1);
+  rb_define_method(rb_cInteger, "arith_rshift32", int_arith_rshift32, 1);
+  rb_define_method(rb_cInteger, "arith_rshift64", int_arith_rshift64, 1);
 
-  rb_define_method(rb_cFixnum, "bitreverse8",  fnum_bitreverse8,  0);
-  rb_define_method(rb_cBignum, "bitreverse8",  bnum_bitreverse8,  0);
-  rb_define_method(rb_cFixnum, "bitreverse16", fnum_bitreverse16, 0);
-  rb_define_method(rb_cBignum, "bitreverse16", bnum_bitreverse16, 0);
-  rb_define_method(rb_cFixnum, "bitreverse32", fnum_bitreverse32, 0);
-  rb_define_method(rb_cBignum, "bitreverse32", bnum_bitreverse32, 0);
-  rb_define_method(rb_cFixnum, "bitreverse64", fnum_bitreverse64, 0);
-  rb_define_method(rb_cBignum, "bitreverse64", bnum_bitreverse64, 0);
+  rb_define_method(rb_cInteger, "bitreverse8",  int_bitreverse8,  0);
+  rb_define_method(rb_cInteger, "bitreverse16", int_bitreverse16, 0);
+  rb_define_method(rb_cInteger, "bitreverse32", int_bitreverse32, 0);
+  rb_define_method(rb_cInteger, "bitreverse64", int_bitreverse64, 0);
 }
 
 static VALUE
