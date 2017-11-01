@@ -256,14 +256,14 @@ bnum_popcount(VALUE bnum)
  * @example
  *   7.popcount   # => 3
  *   255.popcount # => 8
- * @return [Fixnum]
+ * @return [Integer]
  */
 def_int_method(popcount);
 
 /* Return the number of 1 bits in all the bytes of this `String`.
  * @example
  *   "abc".popcount # => 10
- * @return [Fixnum]
+ * @return [Integer]
  */
 static VALUE
 str_popcount(VALUE str)
@@ -324,7 +324,7 @@ bnum_lo_bit(VALUE bnum)
  * @example
  *   1.lo_bit   # => 1
  *   128.lo_bit # => 8
- * @return [Fixnum]
+ * @return [Integer]
  */
 def_int_method(lo_bit);
 
@@ -366,7 +366,7 @@ bnum_hi_bit(VALUE bnum)
  * @example
  *   1.hi_bit   # => 1
  *   255.hi_bit # => 8
- * @return [Fixnum]
+ * @return [Integer]
  */
 def_int_method(hi_bit);
 
@@ -1471,7 +1471,7 @@ void Init_bit_twiddle(void)
    * If `int` is negative, raise `RangeError`.
    *
    * @param int [Integer] The integer to operate on
-   * @return [Fixnum]
+   * @return [Integer]
    */
   rb_define_singleton_method(rb_mBitTwiddle, "popcount", bt_popcount, 1);
   /* Return the index of the lowest 1 bit, where the least-significant bit is index 1.
@@ -1483,7 +1483,7 @@ void Init_bit_twiddle(void)
    * If `int` is negative, raise `RangeError`.
    *
    * @param int [Integer] The integer to operate on
-   * @return [Fixnum]
+   * @return [Integer]
    */
   rb_define_singleton_method(rb_mBitTwiddle, "lo_bit",   bt_lo_bit,   1);
   /* Return the index of the highest 1 bit, where the least-significant bit is index 1.
@@ -1495,7 +1495,7 @@ void Init_bit_twiddle(void)
    * If `int` is negative, raise `RangeError`.
    *
    * @param int [Integer] The integer to operate on
-   * @return [Fixnum]
+   * @return [Integer]
    */
   rb_define_singleton_method(rb_mBitTwiddle, "hi_bit",   bt_hi_bit,   1);
   /* Reverse the least-significant and second least-significant bytes of `int`.
