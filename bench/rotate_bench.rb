@@ -6,9 +6,6 @@ dwords = 1000.times.collect { |n| n.hash & MASK_32 }
 qwords = 1000.times.collect { |n| n.hash & MASK_62 }
 bnums  = 1000.times.collect { |n| n.hash << 16 }
 
-raise "No Bignums!" if qwords.any? { |q| q.is_a?(Bignum) }
-raise "No Fixnums!" if bnums.any? { |b| b.is_a?(Fixnum)}
-
 Benchmark.ips do |b|
   b.report "#rrot8 on Fixnum (x1000)" do |n|
     n.times { dwords.each { |x| x.rrot8(16) }}
