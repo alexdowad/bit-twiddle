@@ -1,7 +1,7 @@
 Fast bitwise operations for Ruby
 ================================
 
-Ruby has built-in implementations of the "workhorses" of bit manipulation: bitwise AND, OR, NOT, and XOR operations and bit shifts. This library adds more bitwise operations, which may be useful in implementing some algorithms. All the added operations are implemented in optimized C code (so this is MRI-only). All operations on integers are implemented for both `Fixnum`s and `Bignum`s.
+Ruby has built-in implementations of the "workhorses" of bit manipulation: bitwise AND, OR, NOT, and XOR operations and bit shifts. This library adds more bitwise operations, which may be useful in implementing some algorithms. All the added operations are implemented in optimized C code (so this is MRI-only).
 
 Install this goodness with:
 
@@ -22,8 +22,6 @@ require "bit-twiddle/core_ext"
 ```
 
 In many cases, `bit-twiddle` operations explicitly work on the low 8, 16, 32, or 64 bits of an integer. (For example, it defines `#bitreverse8`, `#bitreverse16`, `#bitreverse32`, and `#bitreverse64` methods.) If an integer's bit width is larger than the number of bits operated on, the higher-end bits are passed through unchanged.
-
-All methods automatically convert between `Fixnum` and `Bignum` as is most appropriate to represent their result.
 
 ## Examples
 
