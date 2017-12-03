@@ -1,0 +1,20 @@
+version: '0.0.6-{build}'
+
+skip_tags: true
+
+environment:
+  matrix:
+    - ruby_version: "23"
+    - ruby_version: "23-x64"
+    - ruby_version: "24"
+    - ruby_version: "24-x64"
+
+install:
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - bundle install --retry=3
+
+test_script:
+  - bundle exec rake
+  - type ../../../../ext/bit_twiddle/mkmf.log
+
+build: off
