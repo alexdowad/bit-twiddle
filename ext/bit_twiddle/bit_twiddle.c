@@ -4,6 +4,10 @@
 #include <ruby.h>
 #include "bt_bignum.h"
 
+#ifndef HAVE_TYPE_ULONG
+typedef unsigned long ulong;
+#endif
+
 #define fix_zero LONG2FIX(0L)
 #define BIGNUM_P(x) RB_TYPE_P((x), T_BIGNUM)
 

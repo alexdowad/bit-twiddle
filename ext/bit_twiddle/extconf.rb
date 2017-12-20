@@ -22,6 +22,9 @@ check_sizeof 'int'
 check_sizeof 'long'
 check_sizeof 'long long'
 
+# if we already have ulong, HAVE_TYPE_ULONG will be defined as a macro
+have_type 'ulong'
+
 checking_for("whether >> on a signed long is arithmetic shift or logical shift", "%s") do
   is_arith = try_static_assert("(-1L >> (sizeof(long)/8)) == -1L")
   $defs.push("-DRSHIFT_IS_ARITH=#{is_arith ? '1' : '0'}")
