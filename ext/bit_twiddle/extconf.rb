@@ -7,7 +7,14 @@ if ENV['CC']
   RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC']
 end
 
-$CFLAGS << ' -Wall -Werror -O3 -march=native -mtune=native -std=c99 '
+$CFLAGS << ' -Wall ' # turn on all warnings for more thorough code checking
+# for clang; generated Makefile contains GCC-specific -W options which clang doesn't understand
+$CFLAGS << ' -Wno-unknown-warning-option '
+# for clang; ruby.h contains __error__ and __deprecated__, which clang chokes on
+$CFLAGS << ' -Wno-unknown-attributes -Wno-ignored-attributes '
+$CFLAGS << ' -Werror ' # convert all warnings to errors so we can't ignore them
+$CFLAGS << ' -O3 -march=native -mtune=native ' # full optimization
+$CFLAGS << ' -std=c99 ' # use a modern version of the C standard
 
 if RUBY_ENGINE == 'rbx'
   raise "bit-twiddle does not support Rubinius. Sorry!"
