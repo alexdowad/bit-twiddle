@@ -7,6 +7,9 @@
 #ifndef HAVE_TYPE_ULONG
 typedef unsigned long ulong;
 #endif
+#ifndef HAVE_TYPE_UCHAR
+typedef unsigned char uchar;
+#endif
 
 #define fix_zero LONG2FIX(0L)
 #define BIGNUM_P(x) RB_TYPE_P((x), T_BIGNUM)
@@ -57,7 +60,7 @@ bnum_greater(VALUE bnum, BDIGIT value)
 }
 
 static long
-value_to_shiftdist(VALUE shiftdist, long bits)
+value_to_shiftdist(VALUE shiftdist, unsigned int bits)
 {
   for (;;) {
     if (FIXNUM_P(shiftdist)) {
@@ -88,12 +91,12 @@ value_to_rotdist(VALUE rotdist, long bits, long mask)
       rdist = FIX2LONG(rotdist) % bits;
       if (rdist < 0)
         rdist += bits;
-      return rdist;
+      return (ulong)rdist;
     } else if (BIGNUM_P(rotdist)) {
       rdist = *RBIGNUM_DIGITS(rotdist) & mask;
       if (RBIGNUM_NEGATIVE_P(rotdist))
         rdist = bits - rdist;
-      return rdist;
+      return (ulong)rdist;
     } else {
       rotdist = rb_to_int(rotdist);
     }
@@ -106,22 +109,22 @@ store_64_into_bnum(VALUE bnum, uint64_t int64)
   BDIGIT *dest = RBIGNUM_DIGITS(bnum);
   size_t  len  = RBIGNUM_LEN(bnum);
 
-  if (SIZEOF_BDIGIT == 8) {
+#if (SIZEOF_BDIGIT == 8)
     *dest = int64;
-  } else {
+#else
     if (len > 1) {
-      *dest     = int64;
-      *(dest+1) = int64 >> 32;
+      *dest     = (uint32_t)int64;
+      *(dest+1) = (uint32_t)(int64 >> 32);
     } else if ((int64 & (0xFFFFFFFFULL << 32)) == 0) {
       /* the high 4 bytes are zero anyways */
-      *dest = int64;
+      *dest = (uint32_t)int64;
     } else {
       rb_big_resize(bnum, 2);
       dest      = RBIGNUM_DIGITS(bnum); /* may have moved */
-      *dest     = int64;
-      *(dest+1) = int64 >> 32;
+      *dest     = (uint32_t)int64;
+      *(dest+1) = (uint32_t)(int64 >> 32);
     }
-  }
+#endif
 }
 
 static uint64_t
@@ -231,7 +234,7 @@ fnum_popcount(VALUE fnum)
   long value = FIX2LONG(fnum);
   if (value < 0)
     rb_raise(rb_eRangeError, "can't take popcount of a negative number");
-  return LONG2FIX(__builtin_popcountl(value));
+  return LONG2FIX(__builtin_popcountl((ulong)value));
 }
 
 static VALUE
@@ -272,8 +275,8 @@ def_int_method(popcount);
 static VALUE
 str_popcount(VALUE str)
 {
-  char *p     = RSTRING_PTR(str);
-  int  length = RSTRING_LEN(str);
+  uchar *p    = (uchar*)RSTRING_PTR(str);
+  long length = RSTRING_LEN(str);
   long bits   = 0;
 
   /* This could be made faster by processing 4/8 bytes at a time */
@@ -347,7 +350,7 @@ static VALUE
 bnum_hi_bit(VALUE bnum)
 {
   BDIGIT *digit = RBIGNUM_DIGITS(bnum) + (RBIGNUM_LEN(bnum)-1);
-  long    bits  = (sizeof(BDIGIT) * 8) * RBIGNUM_LEN(bnum);
+  ulong   bits  = (sizeof(BDIGIT) * 8) * RBIGNUM_LEN(bnum);
 
   if (RBIGNUM_NEGATIVE_P(bnum))
     rb_raise(rb_eRangeError, "can't find highest 1 bit in a negative number");
@@ -380,14 +383,14 @@ fnum_bswap16(VALUE fnum)
   long value = FIX2LONG(fnum);
   if (value < 0)
     rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
-  return LONG2FIX((value & ~0xFFFF) | __builtin_bswap16(value));
+  return LONG2FIX(((ulong)value & ~0xFFFFUL) | __builtin_bswap16((uint16_t)value));
 }
 
 static VALUE
 bnum_bswap16(VALUE bnum)
 {
   if (RBIGNUM_POSITIVE_P(bnum))
-    return modify_lo16_in_bignum(bnum, __builtin_bswap16(*RBIGNUM_DIGITS(bnum)));
+    return modify_lo16_in_bignum(bnum, __builtin_bswap16((uint16_t)*RBIGNUM_DIGITS(bnum)));
   else
     rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
 }
@@ -419,7 +422,7 @@ fnum_bswap32(VALUE fnum)
      * That is why we have to use a '2NUM' function, not '2FIX' */
     return ULONG2NUM(__builtin_bswap32(FIX2LONG(fnum)));
   else
-    return LONG2FIX((value & ~0xFFFFFFFFL) | __builtin_bswap32(value));
+    return LONG2FIX(((ulong)value & ~0xFFFFFFFFUL) | __builtin_bswap32((uint32_t)value));
 }
 
 static VALUE
@@ -450,7 +453,7 @@ fnum_bswap64(VALUE fnum)
   long value = FIX2LONG(fnum);
   if (value < 0)
     rb_raise(rb_eRangeError, "can't swap bytes in a negative number");
-  return ULL2NUM(__builtin_bswap64(value));
+  return ULL2NUM(__builtin_bswap64((uint64_t)value));
 }
 
 static VALUE
@@ -494,13 +497,13 @@ static VALUE
 fnum_rrot8(VALUE fnum, VALUE rotdist)
 {
   long value = FIX2LONG(fnum);
-  return LONG2FIX((value & ~0xFFL) | rrot8(value, rotdist));
+  return LONG2FIX(((ulong)value & ~0xFFUL) | rrot8((uint8_t)value, rotdist));
 }
 
 static VALUE
 bnum_rrot8(VALUE bnum, VALUE rotdist)
 {
-  return modify_lo8_in_bignum(bnum, rrot8(*RBIGNUM_DIGITS(bnum), rotdist));
+  return modify_lo8_in_bignum(bnum, rrot8((uint8_t)*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Document-method: Integer#rrot8
@@ -522,13 +525,13 @@ static VALUE
 fnum_rrot16(VALUE fnum, VALUE rotdist)
 {
   long value = FIX2LONG(fnum);
-  return LONG2FIX((value & ~0xFFFFL) | rrot16(value, rotdist));
+  return LONG2FIX(((ulong)value & ~0xFFFFUL) | rrot16((uint16_t)value, rotdist));
 }
 
 static VALUE
 bnum_rrot16(VALUE bnum, VALUE rotdist)
 {
-  return modify_lo16_in_bignum(bnum, rrot16(*RBIGNUM_DIGITS(bnum), rotdist));
+  return modify_lo16_in_bignum(bnum, rrot16((uint16_t)*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Document-method: Integer#rrot16
@@ -551,15 +554,15 @@ fnum_rrot32(VALUE fnum, VALUE rotdist)
 {
   long     value  = FIX2LONG(fnum);
   if (SIZEOF_LONG == 8)
-    return LONG2FIX((value & ~0xFFFFFFFFL) | rrot32(value, rotdist));
+    return LONG2FIX(((ulong)value & ~0xFFFFFFFFUL) | rrot32((uint32_t)value, rotdist));
   else
-    return ULONG2NUM(rrot32(value, rotdist));
+    return ULONG2NUM(rrot32((uint32_t)value, rotdist));
 }
 
 static VALUE
 bnum_rrot32(VALUE bnum, VALUE rotdist)
 {
-  return modify_lo32_in_bignum(bnum, rrot32(*RBIGNUM_DIGITS(bnum), rotdist));
+  return modify_lo32_in_bignum(bnum, rrot32((uint32_t)*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Document-method: Integer#rrot32
@@ -606,13 +609,13 @@ static VALUE
 fnum_lrot8(VALUE fnum, VALUE rotdist)
 {
   long value = FIX2LONG(fnum);
-  return LONG2FIX((value & ~0xFFL) | lrot8(value, rotdist));
+  return LONG2FIX(((ulong)value & ~0xFFUL) | lrot8((uint8_t)value, rotdist));
 }
 
 static VALUE
 bnum_lrot8(VALUE bnum, VALUE rotdist)
 {
-  return modify_lo8_in_bignum(bnum, lrot8(*RBIGNUM_DIGITS(bnum), rotdist));
+  return modify_lo8_in_bignum(bnum, lrot8((uint8_t)*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Document-method: Integer#lrot8
@@ -634,13 +637,13 @@ static VALUE
 fnum_lrot16(VALUE fnum, VALUE rotdist)
 {
   long value = FIX2LONG(fnum);
-  return LONG2FIX((value & ~0xFFFFL) | lrot16(value, rotdist));
+  return LONG2FIX(((ulong)value & ~0xFFFFUL) | lrot16((uint16_t)value, rotdist));
 }
 
 static VALUE
 bnum_lrot16(VALUE bnum, VALUE rotdist)
 {
-  return modify_lo16_in_bignum(bnum, lrot16(*RBIGNUM_DIGITS(bnum), rotdist));
+  return modify_lo16_in_bignum(bnum, lrot16((uint16_t)*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Document-method: Integer#lrot16
@@ -662,13 +665,13 @@ static VALUE
 fnum_lrot32(VALUE fnum, VALUE rotdist)
 {
   long value = FIX2LONG(fnum);
-  return LONG2FIX((value & ~0xFFFFFFFFL) | lrot32(value, rotdist));
+  return LONG2FIX(((ulong)value & ~0xFFFFFFFFUL) | lrot32((uint32_t)value, rotdist));
 }
 
 static VALUE
 bnum_lrot32(VALUE bnum, VALUE rotdist)
 {
-  return modify_lo32_in_bignum(bnum, lrot32(*RBIGNUM_DIGITS(bnum), rotdist));
+  return modify_lo32_in_bignum(bnum, lrot32((uint32_t)*RBIGNUM_DIGITS(bnum), rotdist));
 }
 
 /* Document-method: Integer#lrot32
@@ -756,7 +759,7 @@ fnum_lshift8(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFL) | lshift8(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFUL) | lshift8((uint8_t)value, shiftdist));
 }
 
 static VALUE
@@ -765,7 +768,7 @@ bnum_lshift8(VALUE bnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return bnum;
   else
-    return modify_lo8_in_bignum(bnum, lshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
+    return modify_lo8_in_bignum(bnum, lshift8((uint8_t)*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Document-method: Integer#lshift8
@@ -791,7 +794,7 @@ fnum_lshift16(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFFFL) | lshift16(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFFFUL) | lshift16((uint16_t)value, shiftdist));
 }
 
 static VALUE
@@ -800,7 +803,7 @@ bnum_lshift16(VALUE bnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return bnum;
   else
-    return modify_lo16_in_bignum(bnum, lshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
+    return modify_lo16_in_bignum(bnum, lshift16((uint16_t)*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Document-method: Integer#lshift16
@@ -826,7 +829,7 @@ fnum_lshift32(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFFFFFFFL) | lshift32(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFFFFFFFUL) | lshift32((uint32_t)value, shiftdist));
 }
 
 static VALUE
@@ -835,7 +838,7 @@ bnum_lshift32(VALUE bnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return bnum;
   else
-    return modify_lo32_in_bignum(bnum, lshift32(*RBIGNUM_DIGITS(bnum), shiftdist));
+    return modify_lo32_in_bignum(bnum, lshift32((uint32_t)*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Document-method: Integer#lshift32
@@ -901,7 +904,7 @@ fnum_rshift8(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFL) | rshift8(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFUL) | rshift8((uint8_t)value, shiftdist));
 }
 
 static VALUE
@@ -910,7 +913,7 @@ bnum_rshift8(VALUE bnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return bnum;
   else
-    return modify_lo8_in_bignum(bnum, rshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
+    return modify_lo8_in_bignum(bnum, rshift8((uint8_t)*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Document-method: Integer#rshift8
@@ -936,7 +939,7 @@ fnum_rshift16(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFFFL) | rshift16(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFFFUL) | rshift16((uint16_t)value, shiftdist));
 }
 
 static VALUE
@@ -945,7 +948,7 @@ bnum_rshift16(VALUE bnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return bnum;
   else
-    return modify_lo16_in_bignum(bnum, rshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
+    return modify_lo16_in_bignum(bnum, rshift16((uint16_t)*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Document-method: Integer#rshift16
@@ -971,7 +974,7 @@ fnum_rshift32(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFFFFFFFL) | rshift32(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFFFFFFFUL) | rshift32((uint32_t)value, shiftdist));
 }
 
 static VALUE
@@ -1046,7 +1049,7 @@ fnum_arith_rshift8(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFUL) | arith_rshift8(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFUL) | arith_rshift8((uint8_t)value, shiftdist));
 }
 
 static VALUE
@@ -1055,7 +1058,7 @@ bnum_arith_rshift8(VALUE bnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return bnum;
   else
-    return modify_lo8_in_bignum(bnum, arith_rshift8(*RBIGNUM_DIGITS(bnum), shiftdist));
+    return modify_lo8_in_bignum(bnum, arith_rshift8((uint8_t)*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Document-method: Integer#arith_rshift8
@@ -1081,7 +1084,7 @@ fnum_arith_rshift16(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFFFUL) | arith_rshift16(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFFFUL) | arith_rshift16((uint16_t)value, shiftdist));
 }
 
 static VALUE
@@ -1090,7 +1093,7 @@ bnum_arith_rshift16(VALUE bnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return bnum;
   else
-    return modify_lo16_in_bignum(bnum, arith_rshift16(*RBIGNUM_DIGITS(bnum), shiftdist));
+    return modify_lo16_in_bignum(bnum, arith_rshift16((uint16_t)*RBIGNUM_DIGITS(bnum), shiftdist));
 }
 
 /* Document-method: Integer#arith_rshift16
@@ -1116,7 +1119,7 @@ fnum_arith_rshift32(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return LONG2FIX((value & ~0xFFFFFFFFUL) | arith_rshift32(value, shiftdist));
+    return LONG2FIX(((ulong)value & ~0xFFFFFFFFUL) | arith_rshift32((uint32_t)value, shiftdist));
 }
 
 static VALUE
@@ -1150,7 +1153,7 @@ fnum_arith_rshift64(VALUE fnum, VALUE shiftdist)
   if (shiftdist == fix_zero)
     return fnum;
   else
-    return ULONG2NUM(arith_rshift64(FIX2LONG(fnum), shiftdist));
+    return ULONG2NUM(arith_rshift64((uint64_t)FIX2LONG(fnum), shiftdist));
 }
 
 static VALUE
@@ -1204,7 +1207,7 @@ static inline uint8_t reverse8(uint8_t value)
     /* 64-bit CPU
      * Thanks to the Bit Twiddling Hacks page:
      * http://graphics.stanford.edu/~seander/bithacks.html */
-    return (value * 0x0202020202UL & 0x010884422010UL) % 1023;
+    return (uint8_t)((value * 0x0202020202UL & 0x010884422010UL) % 1023);
   else
     /* 32-bit CPU */
     return bitreverse_table[value];
@@ -1212,17 +1215,17 @@ static inline uint8_t reverse8(uint8_t value)
 
 static inline uint16_t reverse16(uint16_t value)
 {
-  return (bitreverse_table[value & 0xFF] << 8) | bitreverse_table[value >> 8];
+  return (uint16_t)(bitreverse_table[value & 0xFF] << 8) | bitreverse_table[value >> 8];
 }
 
 static inline uint32_t reverse32(uint32_t value)
 {
-  return ((uint32_t)reverse16(value) << 16) | reverse16(value >> 16);
+  return ((uint32_t)reverse16((uint16_t)value) << 16) | reverse16(value >> 16);
 }
 
 static inline uint64_t reverse64(uint64_t value)
 {
-  return ((uint64_t)reverse32(value) << 32) | reverse32(value >> 32);
+  return ((uint64_t)reverse32((uint32_t)value) << 32) | reverse32(value >> 32);
 }
 
 static VALUE
@@ -1231,7 +1234,7 @@ fnum_bitreverse8(VALUE fnum)
   long value = FIX2LONG(fnum);
   if (value < 0)
     rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
-  return LONG2FIX((value & ~0xFFL) | reverse8(value));
+  return LONG2FIX((value & ~0xFFL) | reverse8((uint8_t)value));
 }
 
 static VALUE
@@ -1239,7 +1242,7 @@ bnum_bitreverse8(VALUE bnum)
 {
   if (RBIGNUM_NEGATIVE_P(bnum))
     rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
-  return modify_lo8_in_bignum(bnum, reverse8(*RBIGNUM_DIGITS(bnum)));
+  return modify_lo8_in_bignum(bnum, reverse8((uint8_t)*RBIGNUM_DIGITS(bnum)));
 }
 
 /* Document-method: Integer#bitreverse8
@@ -1260,7 +1263,7 @@ fnum_bitreverse16(VALUE fnum)
   long value = FIX2LONG(fnum);
   if (value < 0)
     rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
-  return LONG2FIX((value & ~0xFFFFL) | reverse16(value));
+  return LONG2FIX((value & ~0xFFFFL) | reverse16((uint16_t)value));
 }
 
 static VALUE
@@ -1268,7 +1271,7 @@ bnum_bitreverse16(VALUE bnum)
 {
   if (RBIGNUM_NEGATIVE_P(bnum))
     rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
-  return modify_lo16_in_bignum(bnum, reverse16(*RBIGNUM_DIGITS(bnum)));
+  return modify_lo16_in_bignum(bnum, reverse16((uint16_t)*RBIGNUM_DIGITS(bnum)));
 }
 
 /* Document-method: Integer#bitreverse16
@@ -1287,7 +1290,7 @@ static VALUE
 fnum_bitreverse32(VALUE fnum)
 {
   long     value = FIX2LONG(fnum);
-  uint32_t lo32  = value;
+  uint32_t lo32  = (uint32_t)value;
   if (value < 0)
     rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
   else if (SIZEOF_LONG == 4)
@@ -1322,7 +1325,7 @@ fnum_bitreverse64(VALUE fnum)
   long value = FIX2LONG(fnum);
   if (value < 0)
     rb_raise(rb_eRangeError, "can't reverse bits in a negative number");
-  return ULL2NUM(reverse64(value));
+  return ULL2NUM(reverse64((uint64_t)value));
 }
 
 static VALUE
