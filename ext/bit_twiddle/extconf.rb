@@ -20,8 +20,10 @@ if RUBY_ENGINE == 'rbx'
   raise "bit-twiddle does not support Rubinius. Sorry!"
 elsif RUBY_VERSION < '2.3.0'
   $CFLAGS << " -I#{File.join(dir, 'ruby22')} "
-else
+elsif RUBY_VERSION < '3.0.0'
   $CFLAGS << " -I#{File.join(dir, 'ruby23')} "
+else
+  $CFLAGS << " -I#{File.join(dir, 'ruby30')} "
 end
 
 check_sizeof 'short'
