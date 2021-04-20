@@ -7,3 +7,5 @@ doc
 *.sublime-workspace
 .yardoc
 Gemfile.lock
+ext/bit_twiddle/Makefile
+ext/bit_twiddle/mkmf.log
