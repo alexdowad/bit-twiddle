@@ -6,10 +6,12 @@ Gem::Specification.new do |s|
   s.description = 'Fast (native) bitwise operations for Ruby, in addition to the ones provided by the standard library'
   s.authors     = ['Alex Dowad']
   s.email       = 'alexinbeijing@gmail.com'
-  s.files       = Dir["lib/**/*", "ext/**/*", "LICENSE", "*.md"]
   s.extensions  = ['ext/bit_twiddle/extconf.rb']
   s.homepage    = 'http://github.com/alexdowad/bit-twiddle'
   s.license     = 'None (Public Domain)'
+
+  gitignored    = Dir[*File.readlines(File.join(__dir__, '.gitignore')).map { |l| "**/#{l.chomp}" }]
+  s.files       = Dir["lib/**/*", "ext/**/*", "LICENSE", "*.md"] - gitignored
 
   s.required_ruby_version = ">= 2.2.8"
 
