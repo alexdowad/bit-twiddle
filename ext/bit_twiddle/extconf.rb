@@ -22,8 +22,10 @@ elsif RUBY_VERSION < '2.3.0'
   $CFLAGS << " -I#{File.join(dir, 'ruby22')} "
 elsif RUBY_VERSION < '3.0.0'
   $CFLAGS << " -I#{File.join(dir, 'ruby23')} "
-else
+elsif RUBY_VERSION < '3.1.0'
   $CFLAGS << " -I#{File.join(dir, 'ruby30')} "
+else
+  $CFLAGS << " -I#{File.join(dir, 'ruby31')} "
 end
 
 check_sizeof 'short'
